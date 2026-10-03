@@ -12,7 +12,8 @@
     "search": "Buscar…",
     "empty": "Todavía no hay transcripciones.",
     "noResults": "Sin resultados.",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "versionHint": "Versión {{version}} · Buscar actualizaciones"
   },
   "status": {
     "queued": "En cola",

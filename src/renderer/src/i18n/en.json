@@ -12,7 +12,8 @@
     "search": "Search…",
     "empty": "No transcriptions yet.",
     "noResults": "No results.",
-    "settings": "Settings"
+    "settings": "Settings",
+    "versionHint": "Version {{version}} · Check for updates"
   },
   "status": {
     "queued": "Queued",

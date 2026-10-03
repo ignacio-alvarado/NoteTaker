@@ -8,7 +8,7 @@ import { UpdateBanner } from './UpdateBanner'
 
 export function Sidebar(): React.JSX.Element {
   const { t, i18n } = useTranslation()
-  const { entries, selectedId, select, openSettings, jobs } = useApp()
+  const { entries, selectedId, select, openSettings, jobs, update } = useApp()
   const [query, setQuery] = useState('')
   const isMac = window.api.platform === 'darwin'
 
@@ -99,11 +99,24 @@ export function Sidebar(): React.JSX.Element {
       </nav>
 
       <UpdateBanner />
-      <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
-        <button className="btn-ghost w-full justify-start" onClick={() => openSettings()}>
+      <div className="flex items-center gap-1 border-t border-zinc-200 p-2 dark:border-zinc-800">
+        <button className="btn-ghost flex-1 justify-start" onClick={() => openSettings()}>
           <SettingsIcon />
           {t('sidebar.settings')}
         </button>
+        {update && (
+          <button
+            className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-zinc-400 tabular-nums hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+            title={t('sidebar.versionHint', { version: update.currentVersion })}
+            onClick={() => openSettings('general')}
+          >
+            {/* Señal de versión nueva, aunque el aviso se haya cerrado con «Más tarde». */}
+            {['available', 'downloading', 'downloaded'].includes(update.status) && (
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
+            )}
+            v{update.currentVersion}
+          </button>
+        )}
       </div>
     </aside>
   )
