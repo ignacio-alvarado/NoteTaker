@@ -12,6 +12,7 @@ import type {
   SettingsView,
   SummaryDelta,
   SummaryProvider,
+  UpdateState,
   WhisperModelInfo
 } from './types'
 
@@ -64,4 +65,10 @@ export interface PreloadApi {
     summaryId?: string
   ): Promise<Result<string | null>>
   openExternal(url: string): Promise<Result<void>>
+
+  getUpdateState(): Promise<Result<UpdateState>>
+  checkForUpdates(): Promise<Result<UpdateState>>
+  installUpdate(): Promise<Result<void>>
+  openUpdateDownload(): Promise<Result<void>>
+  onUpdateStatus(cb: (state: UpdateState) => void): Unsubscribe
 }

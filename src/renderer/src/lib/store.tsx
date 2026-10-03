@@ -6,6 +6,7 @@ import type {
   JobProgress,
   ModelDownloadProgress,
   SettingsView,
+  UpdateState,
   WhisperModelInfo
 } from '@shared/types'
 import { api, asAppError } from './api'
@@ -32,6 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
   const [settingsOpen, setSettingsOpen] = useState<string | null>(null)
   const [whisperModels, setWhisperModels] = useState<WhisperModelInfo[]>([])
   const [modelDownloads, setModelDownloads] = useState<Record<string, ModelDownloadProgress>>({})
+  const [update, setUpdate] = useState<UpdateState | null>(null)
 
   const notify = useCallback((kind: Toast['kind'], message: string) => {
     const id = ++toastSeq
@@ -65,10 +67,12 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
     void api.listEntries().then(setEntries)
     void api.activeJobs().then((list) => setJobs(Object.fromEntries(list.map((j) => [j.jobId, j]))))
     void api.listWhisperModels().then(setWhisperModels)
+    void api.getUpdateState().then(setUpdate)
 
     const offs = [
       // Cambios hechos desde el main (API keys, modelo activo tras una descarga…).
       api.onSettingsChanged(applySettings),
+      api.onUpdateStatus(setUpdate),
       api.onModelDownloadProgress((p) => {
         setModelDownloads((prev) => {
           const next = { ...prev }
@@ -133,6 +137,27 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       whisperModels,
       modelDownloads,
       refreshWhisperModels,
+      update,
+      async checkForUpdates() {
+        try {
+          const state = await api.checkForUpdates()
+          // Solo en la comprobación manual se confirma que no hay nada nuevo.
+          if (state.status === 'up-to-date') notify('info', i18n.t('update.upToDate'))
+          if (state.status === 'error' && state.error) notify('error', translateError(state.error))
+        } catch (err) {
+          notifyError(err)
+        }
+      },
+      async installUpdate() {
+        await api.installUpdate()
+      },
+      async openUpdateDownload() {
+        try {
+          await api.openUpdateDownload()
+        } catch (err) {
+          notifyError(err)
+        }
+      },
       select: setSelectedId,
       openSettings: (tab = 'general') => setSettingsOpen(tab),
       closeSettings: () => setSettingsOpen(null),
@@ -202,6 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       whisperModels,
       modelDownloads,
       refreshWhisperModels,
+      update,
       applySettings,
       notify,
       notifyError

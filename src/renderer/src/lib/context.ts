@@ -8,6 +8,7 @@ import type {
   SettingsPatch,
   SettingsView,
   SummaryProvider,
+  UpdateState,
   WhisperModelInfo
 } from '@shared/types'
 
@@ -35,6 +36,7 @@ export interface AppContextValue {
   whisperModels: WhisperModelInfo[]
   /** Descargas de modelos en curso, por id de modelo. */
   modelDownloads: Record<string, ModelDownloadProgress>
+  update: UpdateState | null
 
   select(id: string | null): void
   openSettings(tab?: string): void
@@ -50,6 +52,9 @@ export interface AppContextValue {
   notifyError(err: unknown): void
   dismissToast(id: number): void
   refreshWhisperModels(): Promise<void>
+  checkForUpdates(): Promise<void>
+  installUpdate(): Promise<void>
+  openUpdateDownload(): Promise<void>
 }
 
 export const AppContext = createContext<AppContextValue | null>(null)
@@ -63,6 +68,7 @@ export function translateError(error: AppError): string {
       'FFMPEG_FAILED',
       'WHISPER_FAILED',
       'DOWNLOAD_FAILED',
+      'UPDATE_FAILED',
       'REFUSAL'
     ].includes(error.code)
     ? `${base} (${error.detail})`

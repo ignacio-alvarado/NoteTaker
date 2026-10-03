@@ -180,6 +180,24 @@
       "deleteConfirm": "Delete the template “{{name}}”?"
     }
   },
+  "update": {
+    "title": "Updates",
+    "currentVersion": "Current version: {{version}}",
+    "check": "Check for updates",
+    "checking": "Checking for updates…",
+    "upToDate": "You're on the latest version.",
+    "available": "Version {{version}} is available",
+    "downloading": "Downloading… {{percent}}%",
+    "preparing": "Preparing download…",
+    "readyToInstall": "Ready to install. It will be applied when the app restarts.",
+    "manualHint": "Download the installer and replace the current app.",
+    "download": "Download",
+    "restart": "Restart and update",
+    "later": "Later",
+    "autoCheck": "Check for updates automatically",
+    "releaseNotes": "What's new in {{version}}",
+    "notConfigured": "Updates aren't configured in this build."
+  },
   "languages": {
     "auto": "Detect automatically",
     "es": "Spanish",
@@ -211,6 +229,7 @@
     "NOT_FOUND": "Item not found.",
     "CANCELLED": "Cancelled.",
     "DOWNLOAD_FAILED": "Download failed",
+    "UPDATE_FAILED": "Couldn't check for or download the update",
     "UNKNOWN": "Something went wrong"
   }
 }

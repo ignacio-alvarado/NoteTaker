@@ -32,6 +32,12 @@ export const IPC = {
   libraryDeleteSummary: 'library:delete-summary',
   libraryChanged: 'library:changed',
 
+  updateGetState: 'update:get-state',
+  updateCheck: 'update:check',
+  updateInstall: 'update:install',
+  updateOpenDownload: 'update:open-download',
+  updateStatus: 'update:status',
+
   exportEntry: 'export:entry',
   openExternal: 'shell:open-external'
 } as const

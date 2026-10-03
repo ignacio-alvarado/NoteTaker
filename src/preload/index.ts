@@ -54,7 +54,13 @@ const api: PreloadApi = {
 
   exportEntry: (id, target, format, summaryId) =>
     invoke(IPC.exportEntry, id, target, format, summaryId),
-  openExternal: (url) => invoke(IPC.openExternal, url)
+  openExternal: (url) => invoke(IPC.openExternal, url),
+
+  getUpdateState: () => invoke(IPC.updateGetState),
+  checkForUpdates: () => invoke(IPC.updateCheck),
+  installUpdate: () => invoke(IPC.updateInstall),
+  openUpdateDownload: () => invoke(IPC.updateOpenDownload),
+  onUpdateStatus: (cb) => subscribe(IPC.updateStatus, cb)
 }
 
 contextBridge.exposeInMainWorld('api', api)

@@ -6,6 +6,7 @@ import { TRANSCRIPTION_LANGUAGES } from '../lib/format'
 import { useApp } from '../lib/context'
 import { CheckIcon, CloseIcon, RefreshIcon, TrashIcon } from './icons'
 import { ModelManager } from './ModelManager'
+import { UpdatesSection } from './UpdatesSection'
 
 const TABS = ['general', 'transcription', 'summary', 'keys', 'templates'] as const
 const EFFORTS: Effort[] = ['low', 'medium', 'high', 'xhigh', 'max']
@@ -406,6 +407,8 @@ export function SettingsDialog(): React.JSX.Element | null {
                     ))}
                   </div>
                 </Field>
+                <hr className="border-zinc-200 dark:border-zinc-800" />
+                <UpdatesSection />
               </div>
             )}
 

@@ -4,6 +4,7 @@ import { formatDuration } from '../lib/format'
 import { useApp } from '../lib/context'
 import { MicIcon, PlusIcon, SearchIcon, SettingsIcon } from './icons'
 import { StatusBadge } from './StatusBadge'
+import { UpdateBanner } from './UpdateBanner'
 
 export function Sidebar(): React.JSX.Element {
   const { t, i18n } = useTranslation()
@@ -97,6 +98,7 @@ export function Sidebar(): React.JSX.Element {
         </ul>
       </nav>
 
+      <UpdateBanner />
       <div className="border-t border-zinc-200 p-2 dark:border-zinc-800">
         <button className="btn-ghost w-full justify-start" onClick={() => openSettings()}>
           <SettingsIcon />

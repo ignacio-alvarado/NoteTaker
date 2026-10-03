@@ -54,6 +54,8 @@ export interface Settings {
   transcription: TranscriptionSettings
   summary: SummarySettings
   customTemplates: SummaryTemplate[]
+  /** Buscar versiones nuevas al arrancar y cada pocas horas. */
+  autoCheckUpdates: boolean
 }
 
 export interface SettingsView extends Settings {
@@ -172,11 +174,35 @@ export type ErrorCode =
   | 'NOT_FOUND'
   | 'CANCELLED'
   | 'DOWNLOAD_FAILED'
+  | 'UPDATE_FAILED'
   | 'UNKNOWN'
 
 export interface AppError {
   code: ErrorCode
   detail?: string
+}
+
+export type UpdateStatus =
+  | 'disabled'
+  | 'idle'
+  | 'checking'
+  | 'up-to-date'
+  | 'available'
+  | 'downloading'
+  | 'downloaded'
+  | 'error'
+
+export interface UpdateState {
+  status: UpdateStatus
+  currentVersion: string
+  /** Versión nueva disponible (available/downloading/downloaded). */
+  version?: string
+  /** Progreso de descarga, 0–100. */
+  percent?: number
+  releaseNotes?: string
+  /** true si la app puede descargar e instalar sola (Windows, o macOS firmada). */
+  canInstall: boolean
+  error?: AppError
 }
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: AppError }

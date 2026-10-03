@@ -180,6 +180,24 @@
       "deleteConfirm": "¿Eliminar la plantilla «{{name}}»?"
     }
   },
+  "update": {
+    "title": "Actualizaciones",
+    "currentVersion": "Versión actual: {{version}}",
+    "check": "Buscar actualizaciones",
+    "checking": "Buscando actualizaciones…",
+    "upToDate": "Tienes la última versión.",
+    "available": "Nueva versión {{version}} disponible",
+    "downloading": "Descargando… {{percent}}%",
+    "preparing": "Preparando la descarga…",
+    "readyToInstall": "Lista para instalar. Se aplicará al reiniciar la app.",
+    "manualHint": "Descarga el instalador y reemplaza la app actual.",
+    "download": "Descargar",
+    "restart": "Reiniciar y actualizar",
+    "later": "Más tarde",
+    "autoCheck": "Buscar actualizaciones automáticamente",
+    "releaseNotes": "Novedades de la versión {{version}}",
+    "notConfigured": "Las actualizaciones no están configuradas en esta compilación."
+  },
   "languages": {
     "auto": "Detectar automáticamente",
     "es": "Español",
@@ -211,6 +229,7 @@
     "NOT_FOUND": "No se encontró el elemento.",
     "CANCELLED": "Cancelado.",
     "DOWNLOAD_FAILED": "La descarga falló",
+    "UPDATE_FAILED": "No se pudo comprobar o descargar la actualización",
     "UNKNOWN": "Ocurrió un error inesperado"
   }
 }

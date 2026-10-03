@@ -1,0 +1,136 @@
+name: release
+
+# Un tag vX.Y.Z compila macOS y Windows y publica en S3 los instaladores y los manifiestos
+# (latest-mac.yml / latest.yml) que la app consulta para detectar versiones nuevas.
+# Ejecutado a mano (workflow_dispatch) solo compila y deja los artefactos en GitHub.
+#
+# Configuración del repositorio (Settings → Secrets and variables → Actions):
+#   variables: UPDATE_BASE_URL (URL pública del prefijo), S3_BUCKET, S3_PREFIX, AWS_REGION
+#   secret:    AWS_ROLE_ARN (rol IAM asumido por OIDC; ver README)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # OIDC para asumir el rol de AWS
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            dist: dist:mac
+          - os: windows-latest
+            dist: dist:win
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Check release configuration
+        if: env.IS_RELEASE == 'true'
+        shell: bash
+        env:
+          UPDATE_BASE_URL: ${{ vars.UPDATE_BASE_URL }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          HAS_ROLE: ${{ secrets.AWS_ROLE_ARN != '' }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "::error::El tag ${GITHUB_REF_NAME} no coincide con la versión de package.json (v${VERSION})."
+            exit 1
+          fi
+          for name in UPDATE_BASE_URL S3_BUCKET AWS_REGION; do
+            if [ -z "${!name}" ]; then echo "::error::Falta la variable del repositorio ${name}."; exit 1; fi
+          done
+          if [ "${HAS_ROLE}" != "true" ]; then echo "::error::Falta el secret AWS_ROLE_ARN."; exit 1; fi
+
+      - run: npm ci
+
+      - name: Prepare whisper.cpp
+        run: npm run whisper:fetch
+
+      - run: npm test
+
+      - name: Build installers
+        run: npm run ${{ matrix.dist }}
+        env:
+          # Con URL se generan latest*.yml y app-update.yml; sin ella la app no busca versiones.
+          NOTETAKER_UPDATE_URL: ${{ env.IS_RELEASE == 'true' && vars.UPDATE_BASE_URL || '' }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: notetaker-${{ runner.os }}
+          if-no-files-found: error
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest*.yml
+
+      - name: Configure AWS credentials
+        if: env.IS_RELEASE == 'true'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: notetaker-release-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Publish to S3
+        if: env.IS_RELEASE == 'true'
+        shell: bash
+        env:
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          S3_PREFIX: ${{ vars.S3_PREFIX }}
+          UPDATE_BASE_URL: ${{ vars.UPDATE_BASE_URL }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          prefix="${S3_PREFIX#/}"
+          prefix="${prefix%/}"
+          dest="s3://${S3_BUCKET}${prefix:+/$prefix}"
+
+          binaries=(dist/*.dmg dist/*.zip dist/*.exe dist/*.blockmap)
+          manifests=(dist/latest*.yml)
+          if [ ${#binaries[@]} -eq 0 ] || [ ${#manifests[@]} -eq 0 ]; then
+            echo "::error::No se encontraron instaladores o manifiestos en dist/."
+            exit 1
+          fi
+
+          # 1) Instaladores: llevan la versión en el nombre, así que se pueden cachear para siempre.
+          for f in "${binaries[@]}"; do
+            aws s3 cp "$f" "$dest/$(basename "$f")" --only-show-errors \
+              --cache-control "public, max-age=31536000, immutable"
+          done
+
+          # 2) Manifiesto al final y sin caché: ningún cliente ve una versión nueva
+          #    antes de que sus instaladores estén subidos.
+          for f in "${manifests[@]}"; do
+            aws s3 cp "$f" "$dest/$(basename "$f")" --only-show-errors \
+              --cache-control "no-cache, max-age=0" --content-type "text/yaml"
+          done
+
+          {
+            echo "### NoteTaker ${GITHUB_REF_NAME} (${RUNNER_OS}) publicado"
+            for f in "${binaries[@]}" "${manifests[@]}"; do
+              echo "- ${UPDATE_BASE_URL%/}/$(basename "$f")"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

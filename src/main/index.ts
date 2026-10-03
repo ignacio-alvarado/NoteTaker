@@ -8,6 +8,7 @@ import { JobManager } from './jobs'
 import { Library } from './library'
 import { ffmpegPath, libraryDir, modelsDir, tempDir, whisperCliPath } from './paths'
 import { SettingsStore } from './settings'
+import { Updater } from './updater'
 
 // Permite aislar los datos (ajustes, historial, modelos) en pruebas: NOTETAKER_USER_DATA=/ruta npm run dev
 if (process.env['NOTETAKER_USER_DATA']) app.setPath('userData', process.env['NOTETAKER_USER_DATA'])
@@ -83,12 +84,19 @@ app.whenReady().then(async () => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Mantener la ventana nativa (menús, scrollbars) en sintonía con el tema elegido
-  // y avisar al renderer de cualquier cambio hecho desde el main (claves, modelo activo…).
+  // Mantener la ventana nativa (menús, scrollbars) en sintonía con el tema elegido,
+  // avisar al renderer de cualquier cambio hecho desde el main (claves, modelo activo…)
+  // y reprogramar la búsqueda de actualizaciones si cambia ese ajuste.
+  let updater: Updater | null = null
   const settings = new SettingsStore(app.getPath('userData'), (view) => {
     nativeTheme.themeSource = view.theme
     broadcast(IPC.settingsChanged, view)
+    if (updater && view.autoCheckUpdates !== autoCheckUpdates) {
+      autoCheckUpdates = view.autoCheckUpdates
+      updater.schedule()
+    }
   })
+  let autoCheckUpdates = settings.get().autoCheckUpdates
   nativeTheme.themeSource = settings.get().theme
 
   const library = new Library(libraryDir())
@@ -106,10 +114,12 @@ app.whenReady().then(async () => {
     }
   )
 
-  registerIpc({ library, settings, jobs, modelsDir, broadcast })
+  updater = new Updater(settings, (state) => broadcast(IPC.updateStatus, state))
+  registerIpc({ library, settings, jobs, updater, modelsDir, broadcast })
 
   configurePermissions()
   createWindow()
+  updater.schedule()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

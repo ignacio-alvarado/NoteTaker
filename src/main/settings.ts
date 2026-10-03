@@ -39,7 +39,8 @@ function defaultSettings(): Settings {
       defaultTemplateId: DEFAULT_TEMPLATE_ID,
       autoSummarize: true
     },
-    customTemplates: []
+    customTemplates: [],
+    autoCheckUpdates: true
   }
 }
 

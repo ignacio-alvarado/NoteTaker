@@ -20,6 +20,7 @@ import { exportEntry } from './export'
 import type { JobManager } from './jobs'
 import type { Library } from './library'
 import type { SettingsStore } from './settings'
+import type { Updater } from './updater'
 import { listAnthropicModels } from './summary/anthropic'
 import { listOpenAIModels } from './summary/openai'
 import { deleteModel, downloadModel, isModelInstalled, listModels } from './transcription/models'
@@ -34,6 +35,7 @@ export interface IpcDeps {
   library: Library
   settings: SettingsStore
   jobs: JobManager
+  updater: Updater
   modelsDir: () => string
   broadcast: (channel: string, payload: unknown) => void
 }
@@ -54,7 +56,14 @@ function handle<A extends unknown[], T>(
   })
 }
 
-export function registerIpc({ library, settings, jobs, modelsDir, broadcast }: IpcDeps): void {
+export function registerIpc({
+  library,
+  settings,
+  jobs,
+  updater,
+  modelsDir,
+  broadcast
+}: IpcDeps): void {
   const downloads = new Map<string, AbortController>()
 
   // Ajustes
@@ -177,4 +186,10 @@ export function registerIpc({ library, settings, jobs, modelsDir, broadcast }: I
     if (!/^https:\/\//.test(url)) return
     await shell.openExternal(url)
   })
+
+  // Actualizaciones
+  handle(IPC.updateGetState, () => updater.getState())
+  handle(IPC.updateCheck, () => updater.check())
+  handle(IPC.updateInstall, () => updater.install())
+  handle(IPC.updateOpenDownload, () => updater.openDownload())
 }
