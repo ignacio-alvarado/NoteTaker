@@ -1,0 +1,236 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "untitled": "Untitled"
+  },
+  "sidebar": {
+    "new": "New",
+    "search": "Search…",
+    "empty": "No transcriptions yet.",
+    "noResults": "No results.",
+    "settings": "Settings",
+    "versionHint": "Version {{version}} · Check for updates"
+  },
+  "status": {
+    "queued": "Queued",
+    "processing": "Processing",
+    "transcribed": "Transcribed",
+    "summarized": "Summarized",
+    "error": "Error",
+    "cancelled": "Cancelled"
+  },
+  "home": {
+    "title": "Transcribe and summarize",
+    "subtitle": "Import an audio or video file, or record from your microphone. NoteTaker transcribes it with Whisper and writes a summary.",
+    "drop": "Drop audio or video here",
+    "dropActive": "Drop to transcribe",
+    "or": "or",
+    "choose": "Choose files",
+    "formats": "MP3, WAV, M4A, FLAC, OGG, MP4, MOV, MKV, WEBM and more",
+    "pipeline": "Transcription: <1>{{engine}}</1> · Summary: <3>{{provider}}</3>",
+    "warnNoModel": "No Whisper model has been downloaded for local transcription.",
+    "warnNoOpenAIKeyTranscription": "Transcribing with OpenAI requires an OpenAI API key.",
+    "warnNoSummaryKey": "An API key (Anthropic or OpenAI) is required to generate summaries.",
+    "warnProviderKey": "The selected summary provider doesn't have an API key configured.",
+    "fix": "Set up"
+  },
+  "recorder": {
+    "title": "Record from microphone",
+    "start": "Start recording",
+    "stop": "Stop and transcribe",
+    "discard": "Discard",
+    "recording": "Recording",
+    "micDenied": "No microphone access. Check your system permissions.",
+    "unsupported": "This device can't record audio."
+  },
+  "engine": {
+    "local": "Local Whisper",
+    "openai": "OpenAI API"
+  },
+  "provider": {
+    "anthropic": "Claude",
+    "openai": "OpenAI"
+  },
+  "stages": {
+    "queued": "Queued",
+    "converting": "Preparing audio",
+    "transcribing": "Transcribing",
+    "summarizing": "Writing summary"
+  },
+  "entry": {
+    "tabSummary": "Summary",
+    "tabTranscript": "Transcript",
+    "renameHint": "Click to rename",
+    "delete": "Move to trash",
+    "deleteConfirm": "Move “{{title}}” to the trash?",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "errorTitle": "Transcription failed",
+    "cancelledTitle": "Transcription was cancelled",
+    "waiting": "The transcript will appear here when it's done.",
+    "recording": "Recording",
+    "language": "Language: {{lang}}"
+  },
+  "summary": {
+    "template": "Template",
+    "generate": "Generate summary",
+    "regenerate": "Regenerate",
+    "generating": "Generating…",
+    "empty": "There is no summary for this transcript yet.",
+    "version": "Version",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "exportMd": "Export .md",
+    "exportTxt": "Export .txt",
+    "deleteVersion": "Delete this version",
+    "errorTitle": "Couldn't generate the summary"
+  },
+  "transcript": {
+    "search": "Search transcript…",
+    "copy": "Copy text",
+    "export": "Export",
+    "exportTxt": "Text (.txt)",
+    "exportTxtTs": "Text with timestamps (.txt)",
+    "exportSrt": "Subtitles (.srt)",
+    "exportVtt": "Subtitles (.vtt)",
+    "segments_one": "{{count}} segment",
+    "segments_other": "{{count}} segments",
+    "noMatches": "No segments match."
+  },
+  "export": {
+    "saved": "Saved to {{path}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "general": "General",
+      "transcription": "Transcription",
+      "summary": "Summary",
+      "keys": "API keys",
+      "templates": "Templates"
+    },
+    "general": {
+      "language": "Interface language",
+      "theme": "Theme",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark"
+    },
+    "transcription": {
+      "engine": "Transcription engine",
+      "engineLocalDesc": "Whisper (whisper.cpp) on your computer. Free, private and works offline.",
+      "engineOpenAIDesc": "Whisper in OpenAI's cloud. Fast, no downloads; billed per minute of audio.",
+      "models": "Whisper models",
+      "modelsHint": "Larger models are more accurate but slower. “Large v3 Turbo (Q5)” is a good balance.",
+      "active": "In use",
+      "use": "Use",
+      "download": "Download",
+      "delete": "Delete",
+      "recommended": "Recommended",
+      "language": "Audio language",
+      "threads": "CPU threads",
+      "threadsHint": "0 = automatic.",
+      "gpu": "Use the GPU (Metal / CUDA) when available",
+      "openaiModel": "OpenAI model",
+      "openaiModelHint": "“whisper-1” returns per-segment timestamps; gpt-*-transcribe models return text only.",
+      "refresh": "Load available models"
+    },
+    "summary": {
+      "provider": "Provider",
+      "noKey": "No API key",
+      "model": "Model",
+      "modelHint": "Type a model id or pick one from the list.",
+      "effort": "Reasoning effort",
+      "effortHint": "More effort gives more careful summaries, but takes longer and costs more.",
+      "effortLevels": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "xhigh": "Extra high",
+        "max": "Max"
+      },
+      "outputLanguage": "Summary language",
+      "outputAuto": "Same as the transcript",
+      "defaultTemplate": "Default template",
+      "autoSummarize": "Summarize automatically when transcription finishes"
+    },
+    "keys": {
+      "anthropic": "Anthropic (Claude)",
+      "openai": "OpenAI",
+      "placeholder": "Paste your API key",
+      "save": "Save",
+      "remove": "Remove",
+      "saved": "Saved",
+      "notSet": "Not set",
+      "hint": "Keys are encrypted with the system keychain (Keychain / DPAPI) and only used by the app's main process.",
+      "getKey": "Get a key",
+      "encryptionUnavailable": "System encryption is unavailable: keys can't be saved."
+    },
+    "templates": {
+      "builtin": "Built-in",
+      "custom": "Custom",
+      "new": "New template",
+      "name": "Name",
+      "prompt": "Instructions",
+      "promptHint": "Describe what you want (sections, format, level of detail). The transcript and output language are added automatically.",
+      "emptyCustom": "You don't have custom templates yet.",
+      "deleteConfirm": "Delete the template “{{name}}”?"
+    }
+  },
+  "update": {
+    "title": "Updates",
+    "currentVersion": "Current version: {{version}}",
+    "check": "Check for updates",
+    "checking": "Checking for updates…",
+    "upToDate": "You're on the latest version.",
+    "available": "Version {{version}} is available",
+    "downloading": "Downloading… {{percent}}%",
+    "preparing": "Preparing download…",
+    "readyToInstall": "Ready to install. It will be applied when the app restarts.",
+    "manualHint": "Download the installer and replace the current app.",
+    "download": "Download",
+    "restart": "Restart and update",
+    "later": "Later",
+    "autoCheck": "Check for updates automatically",
+    "releaseNotes": "What's new in {{version}}",
+    "notConfigured": "Updates aren't configured in this build."
+  },
+  "languages": {
+    "auto": "Detect automatically",
+    "es": "Spanish",
+    "en": "English",
+    "pt": "Portuguese",
+    "fr": "French",
+    "de": "German",
+    "it": "Italian",
+    "ca": "Catalan",
+    "nl": "Dutch",
+    "ja": "Japanese",
+    "zh": "Chinese"
+  },
+  "errors": {
+    "NO_API_KEY_ANTHROPIC": "Missing Anthropic API key. Add it in Settings → API keys.",
+    "NO_API_KEY_OPENAI": "Missing OpenAI API key. Add it in Settings → API keys.",
+    "NO_LOCAL_MODEL": "The selected Whisper model isn't downloaded. Download it in Settings → Transcription.",
+    "WHISPER_BINARY_MISSING": "The whisper.cpp executable wasn't found. Run “npm run whisper:fetch”.",
+    "FFMPEG_FAILED": "Couldn't read audio from the file",
+    "WHISPER_FAILED": "Whisper failed to transcribe",
+    "EMPTY_TRANSCRIPT": "No speech was detected in the audio.",
+    "AUTH_FAILED": "The API key is invalid or lacks permissions.",
+    "RATE_LIMITED": "API rate limit reached. Try again in a few minutes.",
+    "NETWORK": "Couldn't reach the service. Check your internet connection.",
+    "REFUSAL": "The model declined to write this summary",
+    "OUTPUT_TRUNCATED": "The model's response was cut off before finishing.",
+    "API_ERROR": "The API returned an error",
+    "ENCRYPTION_UNAVAILABLE": "System encryption is unavailable.",
+    "NOT_FOUND": "Item not found.",
+    "CANCELLED": "Cancelled.",
+    "DOWNLOAD_FAILED": "Download failed",
+    "UPDATE_FAILED": "Couldn't check for or download the update",
+    "UNKNOWN": "Something went wrong"
+  }
+}

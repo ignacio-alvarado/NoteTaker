@@ -1,0 +1,236 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "untitled": "Sin título"
+  },
+  "sidebar": {
+    "new": "Nuevo",
+    "search": "Buscar…",
+    "empty": "Todavía no hay transcripciones.",
+    "noResults": "Sin resultados.",
+    "settings": "Ajustes",
+    "versionHint": "Versión {{version}} · Buscar actualizaciones"
+  },
+  "status": {
+    "queued": "En cola",
+    "processing": "Procesando",
+    "transcribed": "Transcrito",
+    "summarized": "Resumido",
+    "error": "Error",
+    "cancelled": "Cancelado"
+  },
+  "home": {
+    "title": "Transcribe y resume",
+    "subtitle": "Importa un audio o un video, o graba desde el micrófono. NoteTaker lo transcribe con Whisper y genera un resumen.",
+    "drop": "Arrastra audio o video aquí",
+    "dropActive": "Suelta para transcribir",
+    "or": "o",
+    "choose": "Elegir archivos",
+    "formats": "MP3, WAV, M4A, FLAC, OGG, MP4, MOV, MKV, WEBM y más",
+    "pipeline": "Transcripción: <1>{{engine}}</1> · Resumen: <3>{{provider}}</3>",
+    "warnNoModel": "No hay ningún modelo de Whisper descargado para la transcripción local.",
+    "warnNoOpenAIKeyTranscription": "La transcripción con OpenAI necesita una API key de OpenAI.",
+    "warnNoSummaryKey": "Falta una API key (Anthropic u OpenAI) para generar resúmenes.",
+    "warnProviderKey": "El proveedor de resúmenes seleccionado no tiene API key configurada.",
+    "fix": "Configurar"
+  },
+  "recorder": {
+    "title": "Grabar desde el micrófono",
+    "start": "Empezar a grabar",
+    "stop": "Detener y transcribir",
+    "discard": "Descartar",
+    "recording": "Grabando",
+    "micDenied": "No hay acceso al micrófono. Revisa los permisos del sistema.",
+    "unsupported": "Este equipo no permite grabar audio."
+  },
+  "engine": {
+    "local": "Whisper local",
+    "openai": "OpenAI API"
+  },
+  "provider": {
+    "anthropic": "Claude",
+    "openai": "OpenAI"
+  },
+  "stages": {
+    "queued": "En cola",
+    "converting": "Preparando el audio",
+    "transcribing": "Transcribiendo",
+    "summarizing": "Generando el resumen"
+  },
+  "entry": {
+    "tabSummary": "Resumen",
+    "tabTranscript": "Transcripción",
+    "renameHint": "Haz clic para renombrar",
+    "delete": "Mover a la papelera",
+    "deleteConfirm": "¿Mover «{{title}}» a la papelera?",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "errorTitle": "No se pudo transcribir",
+    "cancelledTitle": "La transcripción se canceló",
+    "waiting": "La transcripción aparecerá aquí cuando termine.",
+    "recording": "Grabación",
+    "language": "Idioma: {{lang}}"
+  },
+  "summary": {
+    "template": "Plantilla",
+    "generate": "Generar resumen",
+    "regenerate": "Regenerar",
+    "generating": "Generando…",
+    "empty": "Todavía no hay resumen de esta transcripción.",
+    "version": "Versión",
+    "copy": "Copiar",
+    "copied": "Copiado al portapapeles",
+    "exportMd": "Exportar .md",
+    "exportTxt": "Exportar .txt",
+    "deleteVersion": "Eliminar esta versión",
+    "errorTitle": "No se pudo generar el resumen"
+  },
+  "transcript": {
+    "search": "Buscar en la transcripción…",
+    "copy": "Copiar texto",
+    "export": "Exportar",
+    "exportTxt": "Texto (.txt)",
+    "exportTxtTs": "Texto con tiempos (.txt)",
+    "exportSrt": "Subtítulos (.srt)",
+    "exportVtt": "Subtítulos (.vtt)",
+    "segments_one": "{{count}} segmento",
+    "segments_other": "{{count}} segmentos",
+    "noMatches": "Ningún segmento coincide."
+  },
+  "export": {
+    "saved": "Guardado en {{path}}"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "tabs": {
+      "general": "General",
+      "transcription": "Transcripción",
+      "summary": "Resumen",
+      "keys": "API keys",
+      "templates": "Plantillas"
+    },
+    "general": {
+      "language": "Idioma de la interfaz",
+      "theme": "Tema",
+      "themeSystem": "Sistema",
+      "themeLight": "Claro",
+      "themeDark": "Oscuro"
+    },
+    "transcription": {
+      "engine": "Motor de transcripción",
+      "engineLocalDesc": "Whisper (whisper.cpp) en tu equipo. Gratis, privado y funciona sin conexión.",
+      "engineOpenAIDesc": "Whisper en la nube de OpenAI. Rápido y sin descargas; se cobra por minuto de audio.",
+      "models": "Modelos de Whisper",
+      "modelsHint": "Los modelos más grandes son más precisos pero más lentos. «Large v3 Turbo (Q5)» es un buen equilibrio.",
+      "active": "En uso",
+      "use": "Usar",
+      "download": "Descargar",
+      "delete": "Eliminar",
+      "recommended": "Recomendado",
+      "language": "Idioma del audio",
+      "threads": "Hilos de CPU",
+      "threadsHint": "0 = automático.",
+      "gpu": "Usar GPU (Metal / CUDA) cuando esté disponible",
+      "openaiModel": "Modelo de OpenAI",
+      "openaiModelHint": "«whisper-1» devuelve marcas de tiempo por segmento; los modelos gpt-*-transcribe solo devuelven texto.",
+      "refresh": "Cargar modelos disponibles"
+    },
+    "summary": {
+      "provider": "Proveedor",
+      "noKey": "Sin API key",
+      "model": "Modelo",
+      "modelHint": "Escribe el id del modelo o elige uno de la lista.",
+      "effort": "Esfuerzo de razonamiento",
+      "effortHint": "Más esfuerzo da resúmenes más cuidadosos, pero tarda más y cuesta más.",
+      "effortLevels": {
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto",
+        "xhigh": "Muy alto",
+        "max": "Máximo"
+      },
+      "outputLanguage": "Idioma del resumen",
+      "outputAuto": "El mismo que la transcripción",
+      "defaultTemplate": "Plantilla predeterminada",
+      "autoSummarize": "Resumir automáticamente al terminar de transcribir"
+    },
+    "keys": {
+      "anthropic": "Anthropic (Claude)",
+      "openai": "OpenAI",
+      "placeholder": "Pega tu API key",
+      "save": "Guardar",
+      "remove": "Quitar",
+      "saved": "Guardada",
+      "notSet": "Sin configurar",
+      "hint": "Las claves se cifran con el llavero del sistema (Keychain / DPAPI) y solo las usa el proceso principal de la app.",
+      "getKey": "Obtener una clave",
+      "encryptionUnavailable": "El cifrado del sistema no está disponible: no se pueden guardar claves."
+    },
+    "templates": {
+      "builtin": "Incluidas",
+      "custom": "Personalizadas",
+      "new": "Nueva plantilla",
+      "name": "Nombre",
+      "prompt": "Instrucciones",
+      "promptHint": "Describe qué quieres obtener (secciones, formato, nivel de detalle). La transcripción y el idioma de salida se añaden automáticamente.",
+      "emptyCustom": "Aún no tienes plantillas personalizadas.",
+      "deleteConfirm": "¿Eliminar la plantilla «{{name}}»?"
+    }
+  },
+  "update": {
+    "title": "Actualizaciones",
+    "currentVersion": "Versión actual: {{version}}",
+    "check": "Buscar actualizaciones",
+    "checking": "Buscando actualizaciones…",
+    "upToDate": "Tienes la última versión.",
+    "available": "Nueva versión {{version}} disponible",
+    "downloading": "Descargando… {{percent}}%",
+    "preparing": "Preparando la descarga…",
+    "readyToInstall": "Lista para instalar. Se aplicará al reiniciar la app.",
+    "manualHint": "Descarga el instalador y reemplaza la app actual.",
+    "download": "Descargar",
+    "restart": "Reiniciar y actualizar",
+    "later": "Más tarde",
+    "autoCheck": "Buscar actualizaciones automáticamente",
+    "releaseNotes": "Novedades de la versión {{version}}",
+    "notConfigured": "Las actualizaciones no están configuradas en esta compilación."
+  },
+  "languages": {
+    "auto": "Detectar automáticamente",
+    "es": "Español",
+    "en": "Inglés",
+    "pt": "Portugués",
+    "fr": "Francés",
+    "de": "Alemán",
+    "it": "Italiano",
+    "ca": "Catalán",
+    "nl": "Neerlandés",
+    "ja": "Japonés",
+    "zh": "Chino"
+  },
+  "errors": {
+    "NO_API_KEY_ANTHROPIC": "Falta la API key de Anthropic. Añádela en Ajustes → API keys.",
+    "NO_API_KEY_OPENAI": "Falta la API key de OpenAI. Añádela en Ajustes → API keys.",
+    "NO_LOCAL_MODEL": "El modelo de Whisper elegido no está descargado. Descárgalo en Ajustes → Transcripción.",
+    "WHISPER_BINARY_MISSING": "No se encontró el ejecutable de whisper.cpp. Ejecuta «npm run whisper:fetch».",
+    "FFMPEG_FAILED": "No se pudo leer el audio del archivo",
+    "WHISPER_FAILED": "Whisper falló al transcribir",
+    "EMPTY_TRANSCRIPT": "No se detectó voz en el audio.",
+    "AUTH_FAILED": "La API key no es válida o no tiene permisos.",
+    "RATE_LIMITED": "Se alcanzó el límite de uso de la API. Prueba de nuevo en unos minutos.",
+    "NETWORK": "No hay conexión con el servicio. Revisa tu conexión a internet.",
+    "REFUSAL": "El modelo rechazó generar este resumen",
+    "OUTPUT_TRUNCATED": "La respuesta del modelo se cortó antes de terminar.",
+    "API_ERROR": "La API devolvió un error",
+    "ENCRYPTION_UNAVAILABLE": "El cifrado del sistema no está disponible.",
+    "NOT_FOUND": "No se encontró el elemento.",
+    "CANCELLED": "Cancelado.",
+    "DOWNLOAD_FAILED": "La descarga falló",
+    "UPDATE_FAILED": "No se pudo comprobar o descargar la actualización",
+    "UNKNOWN": "Ocurrió un error inesperado"
+  }
+}

@@ -57,6 +57,7 @@ renderer (React 19 + Tailwind 4, sandbox)  ──IPC tipado──►  main (Node
     lib/         api (Result → excepciones),                     summary/        Claude, OpenAI, plantillas y prompts
                  context/store (estado global)                   library.ts      historial (una carpeta JSON por entrada)
     i18n/        es.json, en.json                                settings.ts     ajustes + API keys cifradas
+                                                                 updater.ts      búsqueda de versiones (electron-updater)
 src/preload/index.ts  → expone window.api (contextBridge)        export.ts       MD/TXT/SRT/VTT
 src/shared/           → tipos, canales IPC, formatos (SRT/VTT)
 ```
@@ -83,7 +84,122 @@ Borrar una entrada la mueve a la papelera del sistema.
 
 ## Empaquetado y distribución
 
-- `electron-builder.yml` incluye `whisper-cli` desde `resources/bin/<platform>-<arch>` y deja `ffmpeg-static` fuera del asar.
-- `ffmpeg-static` descarga el binario de la plataforma donde se ejecuta `npm install`. Por eso el instalador de Windows se genera en Windows. El workflow `.github/workflows/build.yml` lo hace en paralelo (macOS + Windows) al publicar un tag `v*`.
-- **Firma y notarización no están configuradas.** En macOS, la primera vez abre la app con clic derecho → Abrir. Para distribuirla, añade un certificado _Developer ID_ (`CSC_LINK`/`CSC_KEY_PASSWORD`) y `notarize: true` con las credenciales de Apple. En Windows, un certificado de firma de código evita el aviso de SmartScreen.
+- `electron-builder.cjs` incluye `whisper-cli` desde `resources/bin/<platform>-<arch>` y deja `ffmpeg-static` fuera del asar. En macOS genera un `.dmg` (el que descarga el usuario) y un `.zip` (el que necesita la actualización automática cuando la app esté firmada).
+- `ffmpeg-static` descarga el binario de la plataforma donde se ejecuta `npm install`. Por eso el instalador de Windows se genera en Windows. El workflow `.github/workflows/release.yml` compila macOS y Windows en paralelo.
+- **Firma y notarización no están configuradas.** En macOS, la primera vez abre la app con clic derecho → Abrir. En Windows, un certificado de firma de código evita el aviso de SmartScreen.
 - El build de macOS es solo para **arm64** (Apple Silicon). Para Intel, ejecuta `npm run whisper:fetch -- --arch x64` y genera el paquete en una máquina x64, para que `ffmpeg-static` también sea x64.
+
+## Publicar una versión y actualizaciones automáticas
+
+### Cómo funciona
+
+1. Al hacer push de un tag `vX.Y.Z`, el workflow `release` comprueba que coincide con la versión de `package.json` y compila macOS y Windows.
+2. Cada job sube a `s3://<S3_BUCKET>/<S3_PREFIX>/`:
+   - **Primero los instaladores** (`.dmg`, `.zip`, `.exe`, `.blockmap`), cacheables para siempre porque llevan la versión en el nombre.
+   - **Al final el manifiesto** (`latest-mac.yml` o `latest.yml`), sin caché. Así ningún cliente ve una versión nueva antes de que sus instaladores estén subidos.
+3. La app lee ese manifiesto en `UPDATE_BASE_URL` 10 s después de arrancar y luego cada 4 horas. Se desactiva en Ajustes → General → «Buscar actualizaciones automáticamente», y ahí mismo se puede buscar a mano.
+   - **Windows:** descarga la versión nueva en segundo plano y la instala al pulsar «Reiniciar y actualizar» o al cerrar la app.
+   - **macOS sin firma:** avisa y abre la descarga del `.dmg` en el navegador. La instalación automática exige que la app esté firmada con un Developer ID de Apple (ver más abajo).
+4. Si existe `build/release-notes.md`, su contenido se publica en el manifiesto y la app lo muestra como «Novedades».
+
+Los builds locales (`npm run dist:mac` sin `NOTETAKER_UPDATE_URL`) no incluyen feed: en ellos las actualizaciones aparecen como «no configuradas».
+
+### Publicar
+
+```bash
+npm version minor        # 0.1.0 → 0.2.0: actualiza package.json y crea el tag v0.2.0
+git push --follow-tags
+```
+
+### Configuración en GitHub
+
+En Settings → Secrets and variables → Actions:
+
+| Tipo     | Nombre            | Ejemplo                                                                                              |
+| -------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
+| Variable | `UPDATE_BASE_URL` | `https://mi-bucket.s3.eu-west-1.amazonaws.com/notetaker` o `https://updates.midominio.com/notetaker` |
+| Variable | `S3_BUCKET`       | `mi-bucket`                                                                                          |
+| Variable | `S3_PREFIX`       | `notetaker`                                                                                          |
+| Variable | `AWS_REGION`      | `eu-west-1`                                                                                          |
+| Secret   | `AWS_ROLE_ARN`    | `arn:aws:iam::123456789012:role/notetaker-release`                                                   |
+
+`UPDATE_BASE_URL` es la URL pública desde la que las apps leen el prefijo `S3_PREFIX`. Se compila dentro de la app, así que si la cambias, las versiones ya instaladas seguirán usando la anterior.
+
+### Configuración en AWS (OIDC, sin claves guardadas)
+
+1. **Proveedor de identidad OIDC** (una vez por cuenta). En IAM → Identity providers, añade uno de tipo OpenID Connect con URL `https://token.actions.githubusercontent.com` y audiencia `sts.amazonaws.com`.
+2. **Rol `notetaker-release`.** Relación de confianza, limitada a los tags `v*` de tu repositorio:
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "Federated": "arn:aws:iam::<CUENTA>:oidc-provider/token.actions.githubusercontent.com"
+         },
+         "Action": "sts:AssumeRoleWithWebIdentity",
+         "Condition": {
+           "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
+           "StringLike": {
+             "token.actions.githubusercontent.com:sub": "repo:<OWNER>/<REPO>:ref:refs/tags/v*"
+           }
+         }
+       }
+     ]
+   }
+   ```
+
+   Permisos del rol (solo escribir en el prefijo):
+
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": "s3:PutObject",
+         "Resource": "arn:aws:s3:::<BUCKET>/<PREFIJO>/*"
+       }
+     ]
+   }
+   ```
+
+3. **Lectura pública del prefijo.** Elige una de estas dos opciones:
+   - **Bucket público solo en ese prefijo.** En el bucket, desactiva «Block public access» para las políticas del bucket y añade esta política:
+
+     ```json
+     {
+       "Version": "2012-10-17",
+       "Statement": [
+         {
+           "Effect": "Allow",
+           "Principal": "*",
+           "Action": "s3:GetObject",
+           "Resource": "arn:aws:s3:::<BUCKET>/<PREFIJO>/*"
+         }
+       ]
+     }
+     ```
+
+   - **CloudFront delante de un bucket privado (OAC).** Usa la URL de CloudFront como `UPDATE_BASE_URL`. El manifiesto ya se sube con `Cache-Control: no-cache`, así que CloudFront lo revalida en cada petición.
+
+### Activar la instalación automática en macOS (cuando haya firma)
+
+1. Añade a GitHub los secrets de firma y notarización:
+   - `CSC_LINK`: el certificado Developer ID Application, en `.p12` y base64.
+   - `CSC_KEY_PASSWORD`.
+   - `APPLE_API_KEY`, `APPLE_API_KEY_ID` y `APPLE_API_ISSUER`.
+2. En el paso «Build installers» del workflow, pásalos como variables de entorno, quita `CSC_IDENTITY_AUTO_DISCOVERY: false` y añade `NOTETAKER_MAC_AUTO_UPDATE: true`.
+3. En `electron-builder.cjs`, pon `notarize: true`.
+
+A partir de esa versión, la app de macOS también descargará el `.zip` e instalará sola. Las versiones sin firma que ya tengan los usuarios seguirán avisando y abriendo el `.dmg`.
+
+### Probar en local
+
+```bash
+NOTETAKER_UPDATE_URL=http://127.0.0.1:8787/notetaker npm run dev
+```
+
+Sirve en esa URL un `latest-mac.yml` con una versión mayor que la de `package.json`. Con `NOTETAKER_UPDATE_URL` también se puede apuntar una app ya empaquetada a otro feed.
