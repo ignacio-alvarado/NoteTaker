@@ -1,0 +1,81 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --color-accent-50: oklch(0.97 0.02 275);
+  --color-accent-100: oklch(0.93 0.04 275);
+  --color-accent-500: oklch(0.6 0.19 275);
+  --color-accent-600: oklch(0.53 0.2 275);
+  --color-accent-700: oklch(0.46 0.19 275);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-zinc-900 antialiased select-none dark:bg-zinc-950 dark:text-zinc-100;
+}
+
+@utility drag {
+  -webkit-app-region: drag;
+}
+
+@utility no-drag {
+  -webkit-app-region: no-drag;
+}
+
+@utility selectable {
+  @apply select-text;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-primary {
+  @apply btn bg-accent-600 text-white hover:bg-accent-700;
+}
+
+@utility btn-secondary {
+  @apply btn border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800;
+}
+
+@utility btn-ghost {
+  @apply btn text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800;
+}
+
+@utility btn-danger {
+  @apply btn text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50;
+}
+
+@utility input {
+  @apply w-full rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 dark:border-zinc-700 dark:bg-zinc-900;
+}
+
+@utility label {
+  @apply mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300;
+}
+
+@utility hint {
+  @apply mt-1 text-xs text-zinc-500 dark:text-zinc-400;
+}
+
+@utility card {
+  @apply rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}

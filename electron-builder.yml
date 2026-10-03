@@ -1,0 +1,49 @@
+appId: com.notetaker.app
+productName: NoteTaker
+copyright: Copyright © 2026 Ignacio Alvarado
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+asarUnpack:
+  # ffmpeg-static es un ejecutable: debe quedar fuera del asar para poder lanzarse.
+  - node_modules/ffmpeg-static/**
+extraResources:
+  # whisper-cli (+ DLLs en Windows), preparado con `npm run whisper:fetch`.
+  - from: resources/bin/${platform}-${arch}
+    to: bin
+    filter:
+      - '**/*'
+npmRebuild: false
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - target: dmg
+      arch: [arm64]
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSMicrophoneUsageDescription: NoteTaker usa el micrófono para grabar audio y transcribirlo.
+  notarize: false
+dmg:
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+
+win:
+  executableName: NoteTaker
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  artifactName: ${productName}-${version}-win-${arch}-setup.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+
+publish: null

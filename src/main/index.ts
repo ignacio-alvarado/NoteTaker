@@ -1,0 +1,121 @@
+import { app, BrowserWindow, nativeTheme, session, shell } from 'electron'
+import { join } from 'path'
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { IPC } from '@shared/ipc'
+import icon from '../../resources/icon.png?asset'
+import { registerIpc } from './ipc'
+import { JobManager } from './jobs'
+import { Library } from './library'
+import { ffmpegPath, libraryDir, modelsDir, tempDir, whisperCliPath } from './paths'
+import { SettingsStore } from './settings'
+
+// Permite aislar los datos (ajustes, historial, modelos) en pruebas: NOTETAKER_USER_DATA=/ruta npm run dev
+if (process.env['NOTETAKER_USER_DATA']) app.setPath('userData', process.env['NOTETAKER_USER_DATA'])
+
+let mainWindow: BrowserWindow | null = null
+
+function broadcast(channel: string, payload: unknown): void {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) win.webContents.send(channel, payload)
+  }
+}
+
+function createWindow(): void {
+  const isMac = process.platform === 'darwin'
+  mainWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    minWidth: 860,
+    minHeight: 560,
+    show: false,
+    autoHideMenuBar: true,
+    title: 'NoteTaker',
+    ...(isMac
+      ? { titleBarStyle: 'hiddenInset' as const, trafficLightPosition: { x: 16, y: 16 } }
+      : {}),
+    ...(process.platform === 'linux' ? { icon } : {}),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  })
+
+  mainWindow.on('ready-to-show', () => mainWindow?.show())
+  mainWindow.on('closed', () => (mainWindow = null))
+
+  // Los enlaces externos se abren en el navegador; nunca se navega dentro de la app.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\//.test(url)) void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url !== mainWindow?.webContents.getURL()) event.preventDefault()
+  })
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    void mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  } else {
+    void mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+}
+
+/** Solo se concede el micrófono (audio); cámara y demás permisos se deniegan. */
+function configurePermissions(): void {
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    if (permission === 'media') {
+      const types = 'mediaTypes' in details ? (details.mediaTypes ?? []) : []
+      callback(types.length > 0 && types.every((t) => t === 'audio'))
+      return
+    }
+    callback(permission === 'clipboard-sanitized-write')
+  })
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => {
+    return permission === 'media' || permission === 'clipboard-sanitized-write'
+  })
+}
+
+app.whenReady().then(async () => {
+  electronApp.setAppUserModelId('com.notetaker.app')
+
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window)
+  })
+
+  // Mantener la ventana nativa (menús, scrollbars) en sintonía con el tema elegido
+  // y avisar al renderer de cualquier cambio hecho desde el main (claves, modelo activo…).
+  const settings = new SettingsStore(app.getPath('userData'), (view) => {
+    nativeTheme.themeSource = view.theme
+    broadcast(IPC.settingsChanged, view)
+  })
+  nativeTheme.themeSource = settings.get().theme
+
+  const library = new Library(libraryDir())
+  await library.recoverInterrupted()
+
+  const jobs = new JobManager(
+    library,
+    settings,
+    { ffmpeg: ffmpegPath, whisperCli: whisperCliPath, models: modelsDir, temp: tempDir },
+    {
+      progress: (p) => broadcast(IPC.jobProgress, p),
+      delta: (d) => broadcast(IPC.jobSummaryDelta, d),
+      finished: (f) => broadcast(IPC.jobFinished, f),
+      libraryChanged: () => broadcast(IPC.libraryChanged, null)
+    }
+  )
+
+  registerIpc({ library, settings, jobs, modelsDir, broadcast })
+
+  configurePermissions()
+  createWindow()
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+  })
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
+})
