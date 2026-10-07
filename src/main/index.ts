@@ -1,8 +1,9 @@
-import { app, BrowserWindow, nativeTheme, session, shell } from 'electron'
+import { app, BrowserWindow, nativeTheme, safeStorage, session, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { IPC } from '@shared/ipc'
 import icon from '../../resources/icon.png?asset'
+import { ChatGPTAccount } from './accounts/chatgpt'
 import { registerIpc } from './ipc'
 import { JobManager } from './jobs'
 import { Library } from './library'
@@ -99,12 +100,26 @@ app.whenReady().then(async () => {
   let autoCheckUpdates = settings.get().autoCheckUpdates
   nativeTheme.themeSource = settings.get().theme
 
+  // Cuenta de ChatGPT: avisa a los ajustes cuando cambia (conectar, desconectar, sesión caducada).
+  const chatgpt = new ChatGPTAccount({
+    dir: app.getPath('userData'),
+    secrets: {
+      available: () => safeStorage.isEncryptionAvailable(),
+      encrypt: (plain) => safeStorage.encryptString(plain).toString('base64'),
+      decrypt: (stored) => safeStorage.decryptString(Buffer.from(stored, 'base64'))
+    },
+    openBrowser: (url) => shell.openExternal(url),
+    onChange: () => settings.notifyChanged()
+  })
+  settings.attachAccounts({ chatgpt: () => chatgpt.info() })
+
   const library = new Library(libraryDir())
   await library.recoverInterrupted()
 
   const jobs = new JobManager(
     library,
     settings,
+    chatgpt,
     { ffmpeg: ffmpegPath, whisperCli: whisperCliPath, models: modelsDir, temp: tempDir },
     {
       progress: (p) => broadcast(IPC.jobProgress, p),
@@ -115,7 +130,7 @@ app.whenReady().then(async () => {
   )
 
   updater = new Updater(settings, (state) => broadcast(IPC.updateStatus, state))
-  registerIpc({ library, settings, jobs, updater, modelsDir, broadcast })
+  registerIpc({ library, settings, chatgpt, jobs, updater, modelsDir, broadcast })
 
   configurePermissions()
   createWindow()

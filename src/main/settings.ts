@@ -4,6 +4,7 @@ import { rename, writeFile } from 'fs/promises'
 import { join } from 'path'
 import { AppErrorException } from '@shared/errors'
 import type {
+  ChatGPTAccountInfo,
   Settings,
   SettingsPatch,
   SettingsView,
@@ -16,6 +17,11 @@ import { allTemplates, DEFAULT_TEMPLATE_ID } from './summary/templates'
 import { DEFAULT_LOCAL_MODEL } from './transcription/models'
 
 type EncryptedKeys = Partial<Record<SummaryProvider, string>>
+
+/** Estado de la cuenta de ChatGPT conectada. */
+export interface AccountsSource {
+  chatgpt(): ChatGPTAccountInfo | null
+}
 
 function defaultSettings(): Settings {
   const uiLanguage: UiLanguage = app.getLocale().toLowerCase().startsWith('es') ? 'es' : 'en'
@@ -32,8 +38,10 @@ function defaultSettings(): Settings {
     },
     summary: {
       provider: 'anthropic',
+      openaiAuth: 'apiKey',
       anthropicModel: DEFAULT_ANTHROPIC_MODEL,
       openaiModel: DEFAULT_OPENAI_SUMMARY_MODEL,
+      chatgptModel: '',
       effort: 'medium',
       outputLanguage: 'auto',
       defaultTemplateId: DEFAULT_TEMPLATE_ID,
@@ -67,6 +75,7 @@ export class SettingsStore {
   private keys: EncryptedKeys
   private readonly settingsPath: string
   private readonly keysPath: string
+  private accounts: AccountsSource | null = null
 
   constructor(
     dir: string,
@@ -90,6 +99,11 @@ export class SettingsStore {
     return structuredClone(this.settings)
   }
 
+  /** Se conecta después de crear la cuenta, que a su vez avisa aquí de sus cambios. */
+  attachAccounts(accounts: AccountsSource): void {
+    this.accounts = accounts
+  }
+
   view(): SettingsView {
     const settings = this.get()
     return {
@@ -97,8 +111,34 @@ export class SettingsStore {
       templates: allTemplates(settings.uiLanguage, settings.customTemplates),
       hasAnthropicKey: Boolean(this.keys.anthropic),
       hasOpenAIKey: Boolean(this.keys.openai),
-      encryptionAvailable: safeStorage.isEncryptionAvailable()
+      encryptionAvailable: safeStorage.isEncryptionAvailable(),
+      chatgptAccount: this.accounts?.chatgpt() ?? null,
+      summaryReady: {
+        anthropic: this.hasSummaryCredential('anthropic'),
+        openai: this.hasSummaryCredential('openai')
+      }
     }
+  }
+
+  /** Si el proveedor puede resumir: API key guardada o, para OpenAI, la cuenta de ChatGPT. */
+  hasSummaryCredential(provider: SummaryProvider): boolean {
+    if (provider === 'anthropic') return Boolean(this.keys.anthropic)
+    return this.settings.summary.openaiAuth === 'account'
+      ? Boolean(this.accounts?.chatgpt())
+      : Boolean(this.keys.openai)
+  }
+
+  /** Si el proveedor de resumen elegido no puede usarse y `provider` sí, pasar a `provider`. */
+  async preferProvider(provider: SummaryProvider): Promise<void> {
+    if (this.hasSummaryCredential(this.settings.summary.provider)) return
+    if (!this.hasSummaryCredential(provider)) return
+    this.settings = { ...this.settings, summary: { ...this.settings.summary, provider } }
+    await writeJson(this.settingsPath, this.settings)
+  }
+
+  /** Re-emite la vista (p. ej. al conectar o desconectar una cuenta). */
+  notifyChanged(): SettingsView {
+    return this.changed()
   }
 
   async update(patch: SettingsPatch): Promise<SettingsView> {
@@ -130,11 +170,8 @@ export class SettingsStore {
     }
     await writeJson(this.keysPath, this.keys)
 
-    // Si el proveedor de resumen elegido no tiene clave, pasar al que se acaba de configurar.
-    if (trimmed && !this.keys[this.settings.summary.provider]) {
-      this.settings = { ...this.settings, summary: { ...this.settings.summary, provider } }
-      await writeJson(this.settingsPath, this.settings)
-    }
+    // Si el proveedor de resumen elegido no tiene credencial, pasar al que se acaba de configurar.
+    if (trimmed) await this.preferProvider(provider)
     return this.changed()
   }
 
