@@ -111,6 +111,7 @@ Deleting an entry moves it to the system trash.
    - **Windows:** downloads the new version in the background and installs it when you click "Restart and update" or quit the app.
    - **Unsigned macOS:** shows a notice and opens the `.dmg` download in the browser. Automatic installation requires the app to be signed with an Apple Developer ID (see below).
 4. If `build/release-notes.md` exists, its content is published in the manifest and the app shows it as "What's new".
+5. Once both builds succeed, the workflow creates the GitHub release for the tag with the `.dmg` and the `.exe` attached and auto-generated notes. If the release already exists (e.g. created by hand), it only uploads or replaces the installers.
 
 Local builds (`npm run dist:mac` without `NOTETAKER_UPDATE_URL`) don't include a feed: updates show up as "not configured" in them.
 
