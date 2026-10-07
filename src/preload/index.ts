@@ -23,6 +23,9 @@ const api: PreloadApi = {
   setApiKey: (provider, key) => invoke(IPC.settingsSetApiKey, provider, key),
   onSettingsChanged: (cb) => subscribe(IPC.settingsChanged, cb),
   listProviderModels: (provider, purpose) => invoke(IPC.providerModels, provider, purpose),
+  signInChatGPT: () => invoke(IPC.chatgptSignIn),
+  cancelChatGPTSignIn: () => invoke(IPC.chatgptCancelSignIn),
+  signOutChatGPT: () => invoke(IPC.chatgptSignOut),
 
   listWhisperModels: () => invoke(IPC.whisperModelsList),
   downloadWhisperModel: (id) => invoke(IPC.whisperModelsDownload, id),

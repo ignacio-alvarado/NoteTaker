@@ -38,9 +38,9 @@ export function Home(): React.JSX.Element {
     engine === 'local' &&
     whisperModels.length > 0 &&
     !whisperModels.some((m) => m.id === localModel && m.installed)
-  const hasAnyKey = settings!.hasAnthropicKey || settings!.hasOpenAIKey
-  const providerHasKey =
-    provider === 'anthropic' ? settings!.hasAnthropicKey : settings!.hasOpenAIKey
+  const { summaryReady } = settings!
+  const hasAnyKey = summaryReady.anthropic || summaryReady.openai
+  const providerHasKey = summaryReady[provider]
 
   async function chooseFiles(): Promise<void> {
     try {

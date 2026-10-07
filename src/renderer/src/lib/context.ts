@@ -43,6 +43,10 @@ export interface AppContextValue {
   closeSettings(): void
   updateSettings(patch: SettingsPatch): Promise<void>
   setApiKey(provider: SummaryProvider, key: string | null): Promise<void>
+  /** Conecta la cuenta de ChatGPT; lanza ApiError si falla o se cancela. */
+  signInChatGPT(): Promise<void>
+  cancelChatGPTSignIn(): Promise<void>
+  signOutChatGPT(): Promise<void>
   startFiles(paths: string[]): Promise<void>
   startRecording(data: ArrayBuffer, mimeType: string): Promise<void>
   summarize(entryId: string, templateId: string): Promise<void>
@@ -69,7 +73,8 @@ export function translateError(error: AppError): string {
       'WHISPER_FAILED',
       'DOWNLOAD_FAILED',
       'UPDATE_FAILED',
-      'REFUSAL'
+      'REFUSAL',
+      'SIGN_IN_FAILED'
     ].includes(error.code)
     ? `${base} (${error.detail})`
     : base

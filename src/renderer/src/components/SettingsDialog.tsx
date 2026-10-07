@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Effort, SummaryProvider, SummaryTemplate } from '@shared/types'
-import { api } from '../lib/api'
+import { api, ApiError } from '../lib/api'
 import { TRANSCRIPTION_LANGUAGES } from '../lib/format'
 import { useApp } from '../lib/context'
 import { CheckIcon, CloseIcon, RefreshIcon, TrashIcon } from './icons'
@@ -20,6 +20,7 @@ const KEY_URLS: Record<SummaryProvider, string> = {
   anthropic: 'https://console.anthropic.com/settings/keys',
   openai: 'https://platform.openai.com/api-keys'
 }
+const CHATGPT_USAGE_URL = 'https://chatgpt.com/#settings'
 
 function Field({
   label,
@@ -150,9 +151,8 @@ function ApiKeyField({ provider }: { provider: SummaryProvider }): React.JSX.Ele
   }
 
   return (
-    <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+    <div>
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-sm font-medium">{t(`settings.keys.${provider}`)}</span>
         {has ? (
           <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
             <CheckIcon size={12} />
@@ -198,6 +198,121 @@ function ApiKeyField({ provider }: { provider: SummaryProvider }): React.JSX.Ele
         )}
       </form>
     </div>
+  )
+}
+
+function StatusLine({
+  ok,
+  children
+}: {
+  ok: boolean
+  children: React.ReactNode
+}): React.JSX.Element {
+  return (
+    <p
+      className={`flex items-center gap-1.5 text-sm ${
+        ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-300'
+      }`}
+    >
+      {ok && <CheckIcon size={14} className="shrink-0" />}
+      <span>{children}</span>
+    </p>
+  )
+}
+
+function ChatGPTPanel(): React.JSX.Element {
+  const { t } = useTranslation()
+  const { settings, signInChatGPT, cancelChatGPTSignIn, signOutChatGPT, notifyError } = useApp()
+  const [busy, setBusy] = useState(false)
+  const account = settings!.chatgptAccount
+
+  async function connect(): Promise<void> {
+    setBusy(true)
+    try {
+      await signInChatGPT()
+    } catch (err) {
+      // Cancelar no es un error que haya que mostrar.
+      if (!(err instanceof ApiError && err.code === 'CANCELLED')) notifyError(err)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {account ? (
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <StatusLine ok>{t('settings.accounts.chatgptConnected')}</StatusLine>
+            {account.email && <p className="hint">{account.email}</p>}
+          </div>
+          <button
+            className="btn-secondary"
+            onClick={() => void api.openExternal(CHATGPT_USAGE_URL)}
+          >
+            {t('settings.accounts.chatgptManage')} ↗
+          </button>
+          <button className="btn-secondary" onClick={() => void signOutChatGPT()}>
+            {t('settings.accounts.chatgptDisconnect')}
+          </button>
+        </div>
+      ) : busy ? (
+        <div className="flex gap-2">
+          <span className="self-center text-sm text-zinc-500">
+            {t('settings.accounts.chatgptWaiting')}
+          </span>
+          <button className="btn-secondary" onClick={() => void cancelChatGPTSignIn()}>
+            {t('common.cancel')}
+          </button>
+        </div>
+      ) : (
+        <div>
+          <button
+            className="btn-primary"
+            disabled={!settings!.encryptionAvailable}
+            onClick={() => void connect()}
+          >
+            {t('settings.accounts.chatgptConnect')}
+          </button>
+        </div>
+      )}
+      <p className="hint">{t('settings.accounts.chatgptHint')}</p>
+      <p className="hint">{t('settings.accounts.noTranscription')}</p>
+    </div>
+  )
+}
+
+/** Credenciales de un proveedor. OpenAI admite además la cuenta de ChatGPT. */
+function CredentialSection({ provider }: { provider: SummaryProvider }): React.JSX.Element {
+  const { t } = useTranslation()
+  const { settings, updateSettings } = useApp()
+  const mode = settings!.summary.openaiAuth
+
+  return (
+    <section className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+      <h4 className="mb-3 text-sm font-medium">{t(`settings.keys.${provider}`)}</h4>
+      {provider === 'openai' && (
+        <div className="mb-4 flex gap-2">
+          <RadioCard
+            checked={mode === 'apiKey'}
+            onSelect={() => void updateSettings({ summary: { openaiAuth: 'apiKey' } })}
+            title={t('settings.keys.modeApiKey')}
+            description={t('settings.keys.modeApiKeyDesc')}
+          />
+          <RadioCard
+            checked={mode === 'account'}
+            onSelect={() => void updateSettings({ summary: { openaiAuth: 'account' } })}
+            title={t('settings.keys.modeAccount')}
+            description={t('settings.keys.modeAccountDesc')}
+          />
+        </div>
+      )}
+      {provider === 'openai' && mode === 'account' ? (
+        <ChatGPTPanel />
+      ) : (
+        <ApiKeyField provider={provider} />
+      )}
+    </section>
   )
 }
 
@@ -514,15 +629,24 @@ export function SettingsDialog(): React.JSX.Element | null {
                         onSelect={() => void updateSettings({ summary: { provider: p } })}
                         title={t(`provider.${p}`)}
                         description={
-                          (p === 'anthropic' ? settings.hasAnthropicKey : settings.hasOpenAIKey)
-                            ? undefined
-                            : t('settings.summary.noKey')
+                          !settings.summaryReady[p]
+                            ? t('settings.summary.noKey')
+                            : p === 'openai' && sm.openaiAuth === 'account'
+                              ? t('settings.summary.viaAccount')
+                              : undefined
                         }
                       />
                     ))}
                   </div>
                 </Field>
-                <Field label={t('settings.summary.model')} hint={t('settings.summary.modelHint')}>
+                <Field
+                  label={t('settings.summary.model')}
+                  hint={
+                    sm.provider === 'openai' && sm.openaiAuth === 'account'
+                      ? t('settings.summary.chatgptModelHint')
+                      : t('settings.summary.modelHint')
+                  }
+                >
                   {sm.provider === 'anthropic' ? (
                     <ModelInput
                       key="anthropic"
@@ -532,6 +656,16 @@ export function SettingsDialog(): React.JSX.Element | null {
                       purpose="summary"
                       defaults={['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-4-5']}
                       canLoad={settings.hasAnthropicKey}
+                    />
+                  ) : sm.openaiAuth === 'account' ? (
+                    <ModelInput
+                      key="openai-account"
+                      value={sm.chatgptModel}
+                      onCommit={(v) => void updateSettings({ summary: { chatgptModel: v } })}
+                      provider="openai"
+                      purpose="summary"
+                      defaults={sm.chatgptModel ? [sm.chatgptModel] : []}
+                      canLoad={Boolean(settings.chatgptAccount)}
                     />
                   ) : (
                     <ModelInput
@@ -615,8 +749,8 @@ export function SettingsDialog(): React.JSX.Element | null {
                     {t('settings.keys.encryptionUnavailable')}
                   </p>
                 )}
-                <ApiKeyField provider="anthropic" />
-                <ApiKeyField provider="openai" />
+                <CredentialSection provider="anthropic" />
+                <CredentialSection provider="openai" />
                 <p className="hint">{t('settings.keys.hint')}</p>
               </div>
             )}

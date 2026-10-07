@@ -4,7 +4,7 @@ App de escritorio (macOS y Windows) para **transcribir audio y video con Whisper
 
 - Importa audio o video (MP3, WAV, M4A, FLAC, OGG, MP4, MOV, MKV, WEBM…) arrastrándolo o desde un diálogo, o graba desde el micrófono.
 - Transcribe con **Whisper local** ([whisper.cpp](https://github.com/ggml-org/whisper.cpp): gratis, privado, sin conexión, con aceleración Metal en Apple Silicon) o con la **API de OpenAI** (`whisper-1` u otros modelos de transcripción).
-- Resume con **Claude** (por defecto `claude-opus-5-5`) u **OpenAI** (por defecto `gpt-5.5`). Hay plantillas incluidas (resumen ejecutivo, minuta de reunión, puntos clave, notas de estudio) y puedes crear las tuyas.
+- Resume con **Claude** (por defecto `claude-opus-5-5`) u **OpenAI** (por defecto `gpt-5.5`), con API key o, para OpenAI, con tu **cuenta de ChatGPT (Plus/Pro)**. Hay plantillas incluidas (resumen ejecutivo, minuta de reunión, puntos clave, notas de estudio) y puedes crear las tuyas.
 - Guarda un historial local con varias versiones de resumen por grabación.
 - Exporta el resumen a `.md`/`.txt` y la transcripción a `.txt`, `.srt` o `.vtt`.
 - Interfaz en español e inglés, con tema claro, oscuro o del sistema.
@@ -25,9 +25,17 @@ npm run dev
 
 Después, en la app:
 
-1. **Ajustes → API keys:** pega tu clave de Anthropic y/o de OpenAI. Se cifran con el llavero del sistema (Keychain o DPAPI) mediante `safeStorage` y nunca llegan al renderer.
+1. **Ajustes → Cuentas y API keys:** pega tu clave de Anthropic y/o de OpenAI, o conecta tu cuenta de ChatGPT (ver [Usar una cuenta de ChatGPT](#usar-una-cuenta-de-chatgpt)). Las claves y los tokens se cifran con el llavero del sistema (Keychain o DPAPI) mediante `safeStorage` y nunca llegan al renderer.
 2. **Ajustes → Transcripción:** descarga un modelo de Whisper. «Large v3 Turbo (Q5)», de unos 550 MB, es un buen equilibrio; «Base», de 142 MB, sirve para probar rápido.
 3. Arrastra un archivo a la ventana o pulsa **Grabar**.
+
+## Usar una cuenta de ChatGPT
+
+En vez de una API key de OpenAI, los resúmenes pueden usar tu plan de ChatGPT Plus o Pro. El uso cuenta contra los límites del plan.
+
+- Usa [«Sign in with ChatGPT»](https://developers.openai.com/siwc/token-sharing-open-source) con uso del plan: OAuth con PKCE en el navegador y redirección a `127.0.0.1`. Los tokens se refrescan solos. Desde los ajustes de ChatGPT puedes limitar cuánto usa NoteTaker.
+- Este acceso está abierto a apps locales personales o de código abierto. Si NoteTaker pasara a ser un producto de pago, habría que solicitarlo a OpenAI.
+- La cuenta solo cubre los resúmenes: la transcripción sigue siendo Whisper local o la API de OpenAI con API key.
 
 ## Scripts
 
@@ -55,7 +63,8 @@ renderer (React 19 + Tailwind 4, sandbox)  ──IPC tipado──►  main (Node
                  SummaryPanel, TranscriptPanel,                  media/ffmpeg.ts conversión a WAV 16 kHz / MP3 en trozos
                  SettingsDialog, ModelManager…                   transcription/  whisper.cpp local, OpenAI, gestor de modelos
     lib/         api (Result → excepciones),                     summary/        Claude, OpenAI, plantillas y prompts
-                 context/store (estado global)                   library.ts      historial (una carpeta JSON por entrada)
+                 context/store (estado global)                   accounts/       cuenta de ChatGPT (OAuth)
+                                                                 library.ts      historial (una carpeta JSON por entrada)
     i18n/        es.json, en.json                                settings.ts     ajustes + API keys cifradas
                                                                  updater.ts      búsqueda de versiones (electron-updater)
 src/preload/index.ts  → expone window.api (contextBridge)        export.ts       MD/TXT/SRT/VTT
@@ -77,6 +86,7 @@ Detalles del resumen con Claude:
 
 - `settings.json`
 - `keys.json`: claves cifradas.
+- `chatgpt-auth.json`: cliente registrado y tokens de ChatGPT (cifrados). `chatgpt-host.json`: identificador de este equipo.
 - `models/`: modelos GGML.
 - `library/<id>/`: `meta.json`, `transcript.json`, `summaries.json` y `recording.webm`.
 
