@@ -143,7 +143,8 @@
       "provider": "Proveedor",
       "noKey": "Sin configurar",
       "model": "Modelo",
-      "modelHint": "Escribe el id del modelo o elige uno de la lista.",
+      "modelHint": "Elige un modelo de la lista. Pulsa el botón para cargar todos los disponibles.",
+      "noModels": "Pulsa el botón para cargar los modelos",
       "effort": "Esfuerzo de razonamiento",
       "effortHint": "Más esfuerzo da resúmenes más cuidadosos, pero tarda más y cuesta más.",
       "effortLevels": {

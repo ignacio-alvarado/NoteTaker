@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Effort, SummaryProvider, SummaryTemplate } from '@shared/types'
 import { api, ApiError } from '../lib/api'
@@ -69,17 +69,17 @@ function RadioCard({
   )
 }
 
-/** Campo de texto libre con sugerencias cargadas desde la API del proveedor. */
-function ModelInput({
+/** Selector de modelo con opciones cargadas desde la API del proveedor. */
+function ModelSelect({
   value,
-  onCommit,
+  onChange,
   provider,
   purpose,
   defaults,
   canLoad
 }: {
   value: string
-  onCommit: (v: string) => void
+  onChange: (v: string) => void
   provider: SummaryProvider
   purpose: 'summary' | 'transcription'
   defaults: string[]
@@ -87,9 +87,6 @@ function ModelInput({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const { notifyError } = useApp()
-  const listId = useId()
-  // null = sin editar: se muestra el valor guardado.
-  const [draft, setDraft] = useState<string | null>(null)
   const [options, setOptions] = useState<string[]>(defaults)
   const [loading, setLoading] = useState(false)
 
@@ -105,24 +102,24 @@ function ModelInput({
     }
   }
 
+  // El modelo guardado siempre aparece, aunque no esté en la lista.
+  const all = value && !options.includes(value) ? [value, ...options] : options
+
   return (
     <div className="flex gap-2">
-      <input
-        className="input font-mono"
-        list={listId}
-        value={draft ?? value}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={() => {
-          if (draft?.trim() && draft.trim() !== value) onCommit(draft.trim())
-          setDraft(null)
-        }}
-        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-      />
-      <datalist id={listId}>
-        {options.map((o) => (
-          <option key={o} value={o} />
-        ))}
-      </datalist>
+      <select className="input font-mono" value={value} onChange={(e) => onChange(e.target.value)}>
+        {all.length === 0 ? (
+          <option value="" disabled>
+            {t('settings.summary.noModels')}
+          </option>
+        ) : (
+          all.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))
+        )}
+      </select>
       <button
         className="btn-secondary shrink-0"
         disabled={!canLoad || loading}
@@ -605,9 +602,9 @@ export function SettingsDialog(): React.JSX.Element | null {
                     label={t('settings.transcription.openaiModel')}
                     hint={t('settings.transcription.openaiModelHint')}
                   >
-                    <ModelInput
+                    <ModelSelect
                       value={tr.openaiModel}
-                      onCommit={(v) => void updateSettings({ transcription: { openaiModel: v } })}
+                      onChange={(v) => void updateSettings({ transcription: { openaiModel: v } })}
                       provider="openai"
                       purpose="transcription"
                       defaults={OPENAI_TRANSCRIPTION_MODELS}
@@ -648,30 +645,30 @@ export function SettingsDialog(): React.JSX.Element | null {
                   }
                 >
                   {sm.provider === 'anthropic' ? (
-                    <ModelInput
+                    <ModelSelect
                       key="anthropic"
                       value={sm.anthropicModel}
-                      onCommit={(v) => void updateSettings({ summary: { anthropicModel: v } })}
+                      onChange={(v) => void updateSettings({ summary: { anthropicModel: v } })}
                       provider="anthropic"
                       purpose="summary"
                       defaults={['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-4-5']}
                       canLoad={settings.hasAnthropicKey}
                     />
                   ) : sm.openaiAuth === 'account' ? (
-                    <ModelInput
+                    <ModelSelect
                       key="openai-account"
                       value={sm.chatgptModel}
-                      onCommit={(v) => void updateSettings({ summary: { chatgptModel: v } })}
+                      onChange={(v) => void updateSettings({ summary: { chatgptModel: v } })}
                       provider="openai"
                       purpose="summary"
                       defaults={sm.chatgptModel ? [sm.chatgptModel] : []}
                       canLoad={Boolean(settings.chatgptAccount)}
                     />
                   ) : (
-                    <ModelInput
+                    <ModelSelect
                       key="openai"
                       value={sm.openaiModel}
-                      onCommit={(v) => void updateSettings({ summary: { openaiModel: v } })}
+                      onChange={(v) => void updateSettings({ summary: { openaiModel: v } })}
                       provider="openai"
                       purpose="summary"
                       defaults={['gpt-5.5']}

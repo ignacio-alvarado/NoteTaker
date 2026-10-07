@@ -143,7 +143,8 @@
       "provider": "Provider",
       "noKey": "Not set up",
       "model": "Model",
-      "modelHint": "Type a model id or pick one from the list.",
+      "modelHint": "Pick a model from the list. Use the button to load all available models.",
+      "noModels": "Use the button to load models",
       "effort": "Reasoning effort",
       "effortHint": "More effort gives more careful summaries, but takes longer and costs more.",
       "effortLevels": {
