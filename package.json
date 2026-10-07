@@ -1,7 +1,7 @@
 {
   "name": "notetaker",
   "productName": "NoteTaker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Transcribe audio y video con Whisper y resume con Claude u OpenAI",
   "main": "./out/main/index.js",
   "author": "Ignacio Alvarado",
