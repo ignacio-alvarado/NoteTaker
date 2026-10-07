@@ -1,144 +1,144 @@
 # NoteTaker
 
-App de escritorio (macOS y Windows) para **transcribir audio y video con Whisper** y **resumir la transcripción con Claude u OpenAI**.
+Desktop app (macOS and Windows) that **transcribes audio and video with Whisper** and **summarizes the transcript with Claude or OpenAI**.
 
-- Importa audio o video (MP3, WAV, M4A, FLAC, OGG, MP4, MOV, MKV, WEBM…) arrastrándolo o desde un diálogo, o graba desde el micrófono.
-- Transcribe con **Whisper local** ([whisper.cpp](https://github.com/ggml-org/whisper.cpp): gratis, privado, sin conexión, con aceleración Metal en Apple Silicon) o con la **API de OpenAI** (`whisper-1` u otros modelos de transcripción).
-- Resume con **Claude** (por defecto `claude-opus-5-5`) u **OpenAI** (por defecto `gpt-5.5`), con API key o, para OpenAI, con tu **cuenta de ChatGPT (Plus/Pro)**. Hay plantillas incluidas (resumen ejecutivo, minuta de reunión, puntos clave, notas de estudio) y puedes crear las tuyas.
-- Guarda un historial local con varias versiones de resumen por grabación.
-- Exporta el resumen a `.md`/`.txt` y la transcripción a `.txt`, `.srt` o `.vtt`.
-- Interfaz en español e inglés, con tema claro, oscuro o del sistema.
+- Import audio or video (MP3, WAV, M4A, FLAC, OGG, MP4, MOV, MKV, WEBM…) by dragging it in or from a file dialog, or record from the microphone.
+- Transcribe with **local Whisper** ([whisper.cpp](https://github.com/ggml-org/whisper.cpp): free, private, offline, with Metal acceleration on Apple Silicon) or with the **OpenAI API** (`whisper-1` or other transcription models).
+- Summarize with **Claude** (`claude-opus-5-5` by default) or **OpenAI** (`gpt-5.5` by default), using an API key or, for OpenAI, your **ChatGPT account (Plus/Pro)**. Built-in templates are included (executive summary, meeting minutes, key points, study notes) and you can create your own.
+- Keeps a local history with several summary versions per recording.
+- Exports the summary to `.md`/`.txt` and the transcript to `.txt`, `.srt` or `.vtt`.
+- Interface in Spanish and English, with light, dark or system theme.
 
-## Requisitos
+## Requirements
 
-- Node.js 24+ y npm.
-- **macOS:** Xcode Command Line Tools y `cmake` (`brew install cmake`). Hacen falta para compilar whisper.cpp.
-- **Windows:** nada extra. Se descargan los binarios oficiales de whisper.cpp.
+- Node.js 24+ and npm.
+- **macOS:** Xcode Command Line Tools and `cmake` (`brew install cmake`). Both are needed to build whisper.cpp.
+- **Windows:** nothing extra. The official whisper.cpp binaries are downloaded.
 
-## Puesta en marcha
+## Getting started
 
 ```bash
 npm install
-npm run whisper:fetch   # compila (macOS) o descarga (Windows) whisper-cli en resources/bin/
+npm run whisper:fetch   # builds (macOS) or downloads (Windows) whisper-cli into resources/bin/
 npm run dev
 ```
 
-Después, en la app:
+Then, in the app:
 
-1. **Ajustes → Cuentas y API keys:** pega tu clave de Anthropic y/o de OpenAI, o conecta tu cuenta de ChatGPT (ver [Usar una cuenta de ChatGPT](#usar-una-cuenta-de-chatgpt)). Las claves y los tokens se cifran con el llavero del sistema (Keychain o DPAPI) mediante `safeStorage` y nunca llegan al renderer.
-2. **Ajustes → Transcripción:** descarga un modelo de Whisper. «Large v3 Turbo (Q5)», de unos 550 MB, es un buen equilibrio; «Base», de 142 MB, sirve para probar rápido.
-3. Arrastra un archivo a la ventana o pulsa **Grabar**.
+1. **Settings → Accounts & API keys:** paste your Anthropic and/or OpenAI key, or connect your ChatGPT account (see [Use a ChatGPT account](#use-a-chatgpt-account)). Keys and tokens are encrypted with the system keychain (Keychain or DPAPI) through `safeStorage` and never reach the renderer.
+2. **Settings → Transcription:** download a Whisper model. "Large v3 Turbo (Q5)", about 550 MB, is a good balance; "Base", 142 MB, is enough for a quick test.
+3. Drag a file onto the window or click **Record**.
 
-## Usar una cuenta de ChatGPT
+## Use a ChatGPT account
 
-En vez de una API key de OpenAI, los resúmenes pueden usar tu plan de ChatGPT Plus o Pro. El uso cuenta contra los límites del plan.
+Instead of an OpenAI API key, summaries can use your ChatGPT Plus or Pro plan. Usage counts toward the plan's limits.
 
-- Usa [«Sign in with ChatGPT»](https://developers.openai.com/siwc/token-sharing-open-source) con uso del plan: OAuth con PKCE en el navegador y redirección a `127.0.0.1`. Los tokens se refrescan solos. Desde los ajustes de ChatGPT puedes limitar cuánto usa NoteTaker.
-- Este acceso está abierto a apps locales personales o de código abierto. Si NoteTaker pasara a ser un producto de pago, habría que solicitarlo a OpenAI.
-- La cuenta solo cubre los resúmenes: la transcripción sigue siendo Whisper local o la API de OpenAI con API key.
+- It uses ["Sign in with ChatGPT"](https://developers.openai.com/siwc/token-sharing-open-source) with plan usage: OAuth with PKCE in the browser and a redirect to `127.0.0.1`. Tokens refresh automatically. You can cap how much NoteTaker uses from your ChatGPT settings.
+- This access is open to personal or open-source local apps. If NoteTaker became a paid product, it would have to be requested from OpenAI.
+- The account only covers summaries: transcription still uses local Whisper or the OpenAI API with an API key.
 
 ## Scripts
 
-| Script                                                    | Qué hace                                                                                                     |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `npm run dev`                                             | App en modo desarrollo con recarga en caliente                                                               |
-| `npm test`                                                | Tests unitarios y de integración (los SDK de Anthropic y OpenAI contra un servidor simulado)                 |
-| `npm run typecheck` / `npm run lint`                      | Comprobación de tipos y ESLint                                                                               |
-| `npm run smoke -- <archivo> [--model base] [--summarize]` | Prueba del pipeline real (ffmpeg → whisper-cli) fuera de Electron. Con `--summarize` usa `ANTHROPIC_API_KEY` |
-| `npm run dist:mac`                                        | Genera `dist/NoteTaker-<versión>-mac-arm64.dmg`                                                              |
-| `npm run dist:win`                                        | Genera el instalador NSIS de Windows x64 (hay que ejecutarlo en Windows)                                     |
+| Script                                                 | What it does                                                                                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `npm run dev`                                          | App in development mode with hot reload                                                                |
+| `npm test`                                             | Unit and integration tests (the Anthropic and OpenAI SDKs against a mock server)                       |
+| `npm run typecheck` / `npm run lint`                   | Type checking and ESLint                                                                               |
+| `npm run smoke -- <file> [--model base] [--summarize]` | Runs the real pipeline (ffmpeg → whisper-cli) outside Electron. `--summarize` uses `ANTHROPIC_API_KEY` |
+| `npm run dist:mac`                                     | Builds `dist/NoteTaker-<version>-mac-arm64.dmg`                                                        |
+| `npm run dist:win`                                     | Builds the Windows x64 NSIS installer (must be run on Windows)                                         |
 
-Para probar con datos aislados (ajustes, historial y modelos aparte de los tuyos):
+To test with isolated data (settings, history and models separate from yours):
 
 ```bash
-NOTETAKER_USER_DATA=/ruta/temporal npm run dev
+NOTETAKER_USER_DATA=/tmp/notetaker-test npm run dev
 ```
 
-## Arquitectura
+## Architecture
 
 ```
-renderer (React 19 + Tailwind 4, sandbox)  ──IPC tipado──►  main (Node)
-  src/renderer/src/                                            src/main/
-    components/  Home, Recorder, EntryView,                      jobs.ts         cola y orquestación del pipeline
-                 SummaryPanel, TranscriptPanel,                  media/ffmpeg.ts conversión a WAV 16 kHz / MP3 en trozos
-                 SettingsDialog, ModelManager…                   transcription/  whisper.cpp local, OpenAI, gestor de modelos
-    lib/         api (Result → excepciones),                     summary/        Claude, OpenAI, plantillas y prompts
-                 context/store (estado global)                   accounts/       cuenta de ChatGPT (OAuth)
-                                                                 library.ts      historial (una carpeta JSON por entrada)
-    i18n/        es.json, en.json                                settings.ts     ajustes + API keys cifradas
-                                                                 updater.ts      búsqueda de versiones (electron-updater)
-src/preload/index.ts  → expone window.api (contextBridge)        export.ts       MD/TXT/SRT/VTT
-src/shared/           → tipos, canales IPC, formatos (SRT/VTT)
+renderer (React 19 + Tailwind 4, sandboxed)  ──typed IPC──►  main (Node)
+  src/renderer/src/                                             src/main/
+    components/  Home, Recorder, EntryView,                       jobs.ts         pipeline queue and orchestration
+                 SummaryPanel, TranscriptPanel,                   media/ffmpeg.ts conversion to 16 kHz WAV / chunked MP3
+                 SettingsDialog, ModelManager…                    transcription/  local whisper.cpp, OpenAI, model manager
+    lib/         api (Result → exceptions),                       summary/        Claude, OpenAI, templates and prompts
+                 context/store (global state)                     accounts/       ChatGPT account (OAuth)
+                                                                  library.ts      history (one JSON folder per entry)
+    i18n/        es.json, en.json                                 settings.ts     settings + encrypted API keys
+                                                                  updater.ts      update checks (electron-updater)
+src/preload/index.ts  → exposes window.api (contextBridge)        export.ts       MD/TXT/SRT/VTT
+src/shared/           → types, IPC channels, formats (SRT/VTT)
 ```
 
-**Pipeline:** archivo o grabación → ffmpeg → transcripción → resumen en streaming.
+**Pipeline:** file or recording → ffmpeg → transcription → streamed summary.
 
-- Con el motor **local**, ffmpeg convierte a WAV mono de 16 kHz y `whisper-cli` lo transcribe.
-- Con **OpenAI**, ffmpeg convierte a MP3 de 32 kbps en trozos de 10 minutos (para no pasar del límite de 25 MB por petición) y después se reajustan las marcas de tiempo.
+- With the **local** engine, ffmpeg converts to 16 kHz mono WAV and `whisper-cli` transcribes it.
+- With **OpenAI**, ffmpeg converts to 32 kbps MP3 in 10-minute chunks (to stay under the 25 MB per-request limit) and the timestamps are then realigned.
 
-Detalles del resumen con Claude:
+Claude summary details:
 
-- Usa thinking adaptativo y `effort` configurable (por defecto `medium`).
-- Activa `fallbacks: "default"`: si el modelo rechaza la petición, el servidor la reintenta con un modelo de respaldo.
-- La transcripción va en el `system` con `cache_control`, así que regenerar con otra plantilla reutiliza la caché.
+- Uses adaptive thinking and a configurable `effort` (`medium` by default).
+- Enables `fallbacks: "default"`: if the model refuses the request, the server retries it with a fallback model.
+- The transcript goes in the `system` prompt with `cache_control`, so regenerating with another template reuses the cache.
 
-**Datos** (en `userData`: `~/Library/Application Support/NoteTaker` en macOS, `%APPDATA%\NoteTaker` en Windows):
+**Data** (in `userData`: `~/Library/Application Support/NoteTaker` on macOS, `%APPDATA%\NoteTaker` on Windows):
 
 - `settings.json`
-- `keys.json`: claves cifradas.
-- `chatgpt-auth.json`: cliente registrado y tokens de ChatGPT (cifrados). `chatgpt-host.json`: identificador de este equipo.
-- `models/`: modelos GGML.
-- `library/<id>/`: `meta.json`, `transcript.json`, `summaries.json` y `recording.webm`.
+- `keys.json`: encrypted keys.
+- `chatgpt-auth.json`: registered client and ChatGPT tokens (encrypted). `chatgpt-host.json`: this machine's identifier.
+- `models/`: GGML models.
+- `library/<id>/`: `meta.json`, `transcript.json`, `summaries.json` and `recording.webm`.
 
-Borrar una entrada la mueve a la papelera del sistema.
+Deleting an entry moves it to the system trash.
 
-## Empaquetado y distribución
+## Packaging and distribution
 
-- `electron-builder.cjs` incluye `whisper-cli` desde `resources/bin/<platform>-<arch>` y deja `ffmpeg-static` fuera del asar. En macOS genera un `.dmg` (el que descarga el usuario) y un `.zip` (el que necesita la actualización automática cuando la app esté firmada).
-- `ffmpeg-static` descarga el binario de la plataforma donde se ejecuta `npm install`. Por eso el instalador de Windows se genera en Windows. El workflow `.github/workflows/release.yml` compila macOS y Windows en paralelo.
-- **Firma y notarización no están configuradas.** En macOS, la primera vez abre la app con clic derecho → Abrir. En Windows, un certificado de firma de código evita el aviso de SmartScreen.
-- El build de macOS es solo para **arm64** (Apple Silicon). Para Intel, ejecuta `npm run whisper:fetch -- --arch x64` y genera el paquete en una máquina x64, para que `ffmpeg-static` también sea x64.
+- `electron-builder.cjs` bundles `whisper-cli` from `resources/bin/<platform>-<arch>` and keeps `ffmpeg-static` outside the asar. On macOS it builds a `.dmg` (what users download) and a `.zip` (what auto-update needs once the app is signed).
+- `ffmpeg-static` downloads the binary for the platform where `npm install` runs. That's why the Windows installer is built on Windows. The `.github/workflows/release.yml` workflow builds macOS and Windows in parallel.
+- **Code signing and notarization are not configured.** On macOS, open the app the first time with right-click → Open. On Windows, a code signing certificate avoids the SmartScreen warning.
+- The macOS build is **arm64** only (Apple Silicon). For Intel, run `npm run whisper:fetch -- --arch x64` and build the package on an x64 machine, so that `ffmpeg-static` is x64 too.
 
-## Publicar una versión y actualizaciones automáticas
+## Releasing a version and auto-updates
 
-### Cómo funciona
+### How it works
 
-1. Al hacer push de un tag `vX.Y.Z`, el workflow `release` comprueba que coincide con la versión de `package.json` y compila macOS y Windows.
-2. Cada job sube a `s3://<S3_BUCKET>/<S3_PREFIX>/`:
-   - **Primero los instaladores** (`.dmg`, `.zip`, `.exe`, `.blockmap`), cacheables para siempre porque llevan la versión en el nombre.
-   - **Al final el manifiesto** (`latest-mac.yml` o `latest.yml`), sin caché. Así ningún cliente ve una versión nueva antes de que sus instaladores estén subidos.
-3. La app lee ese manifiesto en `UPDATE_BASE_URL` 10 s después de arrancar y luego cada 4 horas. Se desactiva en Ajustes → General → «Buscar actualizaciones automáticamente», y ahí mismo se puede buscar a mano.
-   - **Windows:** descarga la versión nueva en segundo plano y la instala al pulsar «Reiniciar y actualizar» o al cerrar la app.
-   - **macOS sin firma:** avisa y abre la descarga del `.dmg` en el navegador. La instalación automática exige que la app esté firmada con un Developer ID de Apple (ver más abajo).
-4. Si existe `build/release-notes.md`, su contenido se publica en el manifiesto y la app lo muestra como «Novedades».
+1. When a `vX.Y.Z` tag is pushed, the `release` workflow checks that it matches the version in `package.json` and builds macOS and Windows.
+2. Each job uploads to `s3://<S3_BUCKET>/<S3_PREFIX>/`:
+   - **The installers first** (`.dmg`, `.zip`, `.exe`, `.blockmap`), cacheable forever because the version is in the file name.
+   - **The manifest last** (`latest-mac.yml` or `latest.yml`), with no caching. This way no client sees a new version before its installers are uploaded.
+3. The app reads that manifest at `UPDATE_BASE_URL` 10 s after launch and then every 4 hours. It can be turned off in Settings → General → "Check for updates automatically", which is also where you can check manually.
+   - **Windows:** downloads the new version in the background and installs it when you click "Restart and update" or quit the app.
+   - **Unsigned macOS:** shows a notice and opens the `.dmg` download in the browser. Automatic installation requires the app to be signed with an Apple Developer ID (see below).
+4. If `build/release-notes.md` exists, its content is published in the manifest and the app shows it as "What's new".
 
-Los builds locales (`npm run dist:mac` sin `NOTETAKER_UPDATE_URL`) no incluyen feed: en ellos las actualizaciones aparecen como «no configuradas».
+Local builds (`npm run dist:mac` without `NOTETAKER_UPDATE_URL`) don't include a feed: updates show up as "not configured" in them.
 
-### Publicar
+### Publish
 
 ```bash
-npm version minor        # 0.1.0 → 0.2.0: actualiza package.json y crea el tag v0.2.0
+npm version minor        # 0.1.0 → 0.2.0: updates package.json and creates the v0.2.0 tag
 git push --follow-tags
 ```
 
-### Configuración en GitHub
+### GitHub configuration
 
-En Settings → Secrets and variables → Actions:
+In Settings → Secrets and variables → Actions:
 
-| Tipo     | Nombre            | Ejemplo                                                                                              |
+| Type     | Name              | Example                                                                                              |
 | -------- | ----------------- | ---------------------------------------------------------------------------------------------------- |
-| Variable | `UPDATE_BASE_URL` | `https://mi-bucket.s3.eu-west-1.amazonaws.com/notetaker` o `https://updates.midominio.com/notetaker` |
-| Variable | `S3_BUCKET`       | `mi-bucket`                                                                                          |
+| Variable | `UPDATE_BASE_URL` | `https://my-bucket.s3.eu-west-1.amazonaws.com/notetaker` or `https://updates.mydomain.com/notetaker` |
+| Variable | `S3_BUCKET`       | `my-bucket`                                                                                          |
 | Variable | `S3_PREFIX`       | `notetaker`                                                                                          |
 | Variable | `AWS_REGION`      | `eu-west-1`                                                                                          |
 | Secret   | `AWS_ROLE_ARN`    | `arn:aws:iam::123456789012:role/notetaker-release`                                                   |
 
-`UPDATE_BASE_URL` es la URL pública desde la que las apps leen el prefijo `S3_PREFIX`. Se compila dentro de la app, así que si la cambias, las versiones ya instaladas seguirán usando la anterior.
+`UPDATE_BASE_URL` is the public URL from which the apps read the `S3_PREFIX` prefix. It is compiled into the app, so if you change it, already installed versions will keep using the old one.
 
-### Configuración en AWS (OIDC, sin claves guardadas)
+### AWS configuration (OIDC, no stored keys)
 
-1. **Proveedor de identidad OIDC** (una vez por cuenta). En IAM → Identity providers, añade uno de tipo OpenID Connect con URL `https://token.actions.githubusercontent.com` y audiencia `sts.amazonaws.com`.
-2. **Rol `notetaker-release`.** Relación de confianza, limitada a los tags `v*` de tu repositorio:
+1. **OIDC identity provider** (once per account). In IAM → Identity providers, add an OpenID Connect provider with URL `https://token.actions.githubusercontent.com` and audience `sts.amazonaws.com`.
+2. **`notetaker-release` role.** Trust relationship, limited to the `v*` tags of your repository:
 
    ```json
    {
@@ -147,7 +147,7 @@ En Settings → Secrets and variables → Actions:
        {
          "Effect": "Allow",
          "Principal": {
-           "Federated": "arn:aws:iam::<CUENTA>:oidc-provider/token.actions.githubusercontent.com"
+           "Federated": "arn:aws:iam::<ACCOUNT>:oidc-provider/token.actions.githubusercontent.com"
          },
          "Action": "sts:AssumeRoleWithWebIdentity",
          "Condition": {
@@ -161,7 +161,7 @@ En Settings → Secrets and variables → Actions:
    }
    ```
 
-   Permisos del rol (solo escribir en el prefijo):
+   Role permissions (write to the prefix only):
 
    ```json
    {
@@ -170,14 +170,14 @@ En Settings → Secrets and variables → Actions:
        {
          "Effect": "Allow",
          "Action": "s3:PutObject",
-         "Resource": "arn:aws:s3:::<BUCKET>/<PREFIJO>/*"
+         "Resource": "arn:aws:s3:::<BUCKET>/<PREFIX>/*"
        }
      ]
    }
    ```
 
-3. **Lectura pública del prefijo.** Elige una de estas dos opciones:
-   - **Bucket público solo en ese prefijo.** En el bucket, desactiva «Block public access» para las políticas del bucket y añade esta política:
+3. **Public read access to the prefix.** Pick one of these two options:
+   - **Bucket public on that prefix only.** On the bucket, turn off "Block public access" for bucket policies and add this policy:
 
      ```json
      {
@@ -187,29 +187,29 @@ En Settings → Secrets and variables → Actions:
            "Effect": "Allow",
            "Principal": "*",
            "Action": "s3:GetObject",
-           "Resource": "arn:aws:s3:::<BUCKET>/<PREFIJO>/*"
+           "Resource": "arn:aws:s3:::<BUCKET>/<PREFIX>/*"
          }
        ]
      }
      ```
 
-   - **CloudFront delante de un bucket privado (OAC).** Usa la URL de CloudFront como `UPDATE_BASE_URL`. El manifiesto ya se sube con `Cache-Control: no-cache`, así que CloudFront lo revalida en cada petición.
+   - **CloudFront in front of a private bucket (OAC).** Use the CloudFront URL as `UPDATE_BASE_URL`. The manifest is already uploaded with `Cache-Control: no-cache`, so CloudFront revalidates it on every request.
 
-### Activar la instalación automática en macOS (cuando haya firma)
+### Enabling automatic installation on macOS (once signing is set up)
 
-1. Añade a GitHub los secrets de firma y notarización:
-   - `CSC_LINK`: el certificado Developer ID Application, en `.p12` y base64.
+1. Add the signing and notarization secrets to GitHub:
+   - `CSC_LINK`: the Developer ID Application certificate, as a base64-encoded `.p12`.
    - `CSC_KEY_PASSWORD`.
-   - `APPLE_API_KEY`, `APPLE_API_KEY_ID` y `APPLE_API_ISSUER`.
-2. En el paso «Build installers» del workflow, pásalos como variables de entorno, quita `CSC_IDENTITY_AUTO_DISCOVERY: false` y añade `NOTETAKER_MAC_AUTO_UPDATE: true`.
-3. En `electron-builder.cjs`, pon `notarize: true`.
+   - `APPLE_API_KEY`, `APPLE_API_KEY_ID` and `APPLE_API_ISSUER`.
+2. In the workflow's "Build installers" step, pass them as environment variables, remove `CSC_IDENTITY_AUTO_DISCOVERY: false` and add `NOTETAKER_MAC_AUTO_UPDATE: true`.
+3. In `electron-builder.cjs`, set `notarize: true`.
 
-A partir de esa versión, la app de macOS también descargará el `.zip` e instalará sola. Las versiones sin firma que ya tengan los usuarios seguirán avisando y abriendo el `.dmg`.
+From that version on, the macOS app will also download the `.zip` and install it on its own. Unsigned versions that users already have will keep showing a notice and opening the `.dmg`.
 
-### Probar en local
+### Testing locally
 
 ```bash
 NOTETAKER_UPDATE_URL=http://127.0.0.1:8787/notetaker npm run dev
 ```
 
-Sirve en esa URL un `latest-mac.yml` con una versión mayor que la de `package.json`. Con `NOTETAKER_UPDATE_URL` también se puede apuntar una app ya empaquetada a otro feed.
+Serve a `latest-mac.yml` at that URL with a version higher than the one in `package.json`. `NOTETAKER_UPDATE_URL` can also point an already packaged app at a different feed.
