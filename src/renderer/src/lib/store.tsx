@@ -171,6 +171,19 @@ export function AppProvider({ children }: { children: ReactNode }): React.JSX.El
       async setApiKey(provider, key) {
         applySettings(await api.setApiKey(provider, key))
       },
+      async signInChatGPT() {
+        applySettings(await api.signInChatGPT())
+      },
+      async cancelChatGPTSignIn() {
+        await api.cancelChatGPTSignIn()
+      },
+      async signOutChatGPT() {
+        try {
+          applySettings(await api.signOutChatGPT())
+        } catch (err) {
+          notifyError(err)
+        }
+      },
       async startFiles(paths) {
         let first: string | null = null
         for (const path of paths) {

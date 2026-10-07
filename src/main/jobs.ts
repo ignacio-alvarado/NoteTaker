@@ -11,6 +11,7 @@ import type {
   SummaryDelta,
   Transcript
 } from '@shared/types'
+import type { ChatGPTAccount } from './accounts/chatgpt'
 import type { Library } from './library'
 import { convertToMp3Chunks, convertToWav16k } from './media/ffmpeg'
 import type { SettingsStore } from './settings'
@@ -54,6 +55,7 @@ export class JobManager {
   constructor(
     private readonly library: Library,
     private readonly settings: SettingsStore,
+    private readonly chatgpt: ChatGPTAccount,
     private readonly paths: JobPaths,
     private readonly events: JobEvents
   ) {}
@@ -234,8 +236,8 @@ export class JobManager {
       this.events.libraryChanged()
       this.finish(jobId, entryId, 'transcription', null)
 
-      // Sin API key no se autorresume: el inicio ya avisa y el usuario puede generarlo luego.
-      if (summary.autoSummarize && this.settings.getApiKey(summary.provider)) {
+      // Sin credencial no se autorresume: el inicio ya avisa y el usuario puede generarlo luego.
+      if (summary.autoSummarize && this.settings.hasSummaryCredential(summary.provider)) {
         this.summarize(entryId, summary.defaultTemplateId)
       }
     } catch (err) {
@@ -285,6 +287,19 @@ export class JobManager {
           apiKey: this.settings.requireApiKey('anthropic'),
           model,
           effort: cfg.effort,
+          prompt,
+          signal,
+          onDelta
+        })
+      } else if (cfg.openaiAuth === 'account') {
+        // Cuenta de ChatGPT: los modelos del plan tienen otros ids; sin elegir, el primero.
+        const planModel = cfg.chatgptModel || (await this.chatgpt.listModels())[0]?.slug
+        if (!planModel) throw new AppErrorException('API_ERROR', 'no models')
+        model = planModel
+        markdown = await summarizeWithOpenAI({
+          apiKey: await this.chatgpt.getAccessToken(),
+          account: true,
+          model,
           prompt,
           signal,
           onDelta

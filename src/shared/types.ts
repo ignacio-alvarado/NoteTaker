@@ -3,6 +3,8 @@ export type Theme = 'system' | 'light' | 'dark'
 export type TranscriptionEngine = 'local' | 'openai'
 export type SummaryProvider = 'anthropic' | 'openai'
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
+/** Cómo se autentica un proveedor de resúmenes: API key propia o la cuenta (suscripción). */
+export type CredentialMode = 'apiKey' | 'account'
 export type OutputLanguage = 'auto' | 'es' | 'en'
 
 /** Un fragmento de la transcripción. Tiempos en segundos. */
@@ -40,8 +42,12 @@ export interface TranscriptionSettings {
 
 export interface SummarySettings {
   provider: SummaryProvider
+  /** `account` = «Sign in with ChatGPT» con el plan Plus/Pro del usuario. */
+  openaiAuth: CredentialMode
   anthropicModel: string
   openaiModel: string
+  /** Modelo para la cuenta de ChatGPT (los slugs del plan difieren de los de la API). */
+  chatgptModel: string
   effort: Effort
   outputLanguage: OutputLanguage
   defaultTemplateId: string
@@ -58,12 +64,20 @@ export interface Settings {
   autoCheckUpdates: boolean
 }
 
+export interface ChatGPTAccountInfo {
+  email: string | null
+}
+
 export interface SettingsView extends Settings {
   /** Plantillas incluidas (en el idioma de la UI) + personalizadas. */
   templates: SummaryTemplate[]
   hasAnthropicKey: boolean
   hasOpenAIKey: boolean
   encryptionAvailable: boolean
+  /** Cuenta de ChatGPT conectada, o null. */
+  chatgptAccount: ChatGPTAccountInfo | null
+  /** Si cada proveedor tiene credencial para el modo elegido (clave o cuenta). */
+  summaryReady: Record<SummaryProvider, boolean>
 }
 
 export type SettingsPatch = Partial<
@@ -171,6 +185,10 @@ export type ErrorCode =
   | 'OUTPUT_TRUNCATED'
   | 'API_ERROR'
   | 'ENCRYPTION_UNAVAILABLE'
+  | 'ACCOUNT_SIGNED_OUT'
+  | 'ACCOUNT_NOT_ELIGIBLE'
+  | 'USAGE_LIMIT'
+  | 'SIGN_IN_FAILED'
   | 'NOT_FOUND'
   | 'CANCELLED'
   | 'DOWNLOAD_FAILED'

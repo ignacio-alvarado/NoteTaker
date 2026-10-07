@@ -34,8 +34,8 @@
     "pipeline": "Transcription: <1>{{engine}}</1> · Summary: <3>{{provider}}</3>",
     "warnNoModel": "No Whisper model has been downloaded for local transcription.",
     "warnNoOpenAIKeyTranscription": "Transcribing with OpenAI requires an OpenAI API key.",
-    "warnNoSummaryKey": "An API key (Anthropic or OpenAI) is required to generate summaries.",
-    "warnProviderKey": "The selected summary provider doesn't have an API key configured.",
+    "warnNoSummaryKey": "Add an API key (Anthropic or OpenAI) or connect your ChatGPT account to generate summaries.",
+    "warnProviderKey": "The selected summary provider has no account or API key configured.",
     "fix": "Set up"
   },
   "recorder": {
@@ -110,7 +110,7 @@
       "general": "General",
       "transcription": "Transcription",
       "summary": "Summary",
-      "keys": "API keys",
+      "keys": "Accounts & API keys",
       "templates": "Templates"
     },
     "general": {
@@ -141,9 +141,10 @@
     },
     "summary": {
       "provider": "Provider",
-      "noKey": "No API key",
+      "noKey": "Not set up",
       "model": "Model",
-      "modelHint": "Type a model id or pick one from the list.",
+      "modelHint": "Pick a model from the list. Use the button to load all available models.",
+      "noModels": "Use the button to load models",
       "effort": "Reasoning effort",
       "effortHint": "More effort gives more careful summaries, but takes longer and costs more.",
       "effortLevels": {
@@ -156,7 +157,9 @@
       "outputLanguage": "Summary language",
       "outputAuto": "Same as the transcript",
       "defaultTemplate": "Default template",
-      "autoSummarize": "Summarize automatically when transcription finishes"
+      "autoSummarize": "Summarize automatically when transcription finishes",
+      "viaAccount": "With your account",
+      "chatgptModelHint": "Models included in your ChatGPT plan. Use the button to load them."
     },
     "keys": {
       "anthropic": "Anthropic (Claude)",
@@ -168,7 +171,20 @@
       "notSet": "Not set",
       "hint": "Keys are encrypted with the system keychain (Keychain / DPAPI) and only used by the app's main process.",
       "getKey": "Get a key",
-      "encryptionUnavailable": "System encryption is unavailable: keys can't be saved."
+      "encryptionUnavailable": "System encryption is unavailable: keys can't be saved.",
+      "modeApiKey": "API key",
+      "modeApiKeyDesc": "Pay as you go in the provider console.",
+      "modeAccount": "ChatGPT account",
+      "modeAccountDesc": "Uses your Plus or Pro plan."
+    },
+    "accounts": {
+      "chatgptConnect": "Connect with ChatGPT",
+      "chatgptWaiting": "Finish connecting in your browser…",
+      "chatgptConnected": "Connected",
+      "chatgptDisconnect": "Disconnect",
+      "chatgptManage": "Manage usage",
+      "chatgptHint": "Requires ChatGPT Plus or Pro. Usage counts toward your plan limits, and you can cap how much NoteTaker uses in your ChatGPT settings. Tokens are encrypted with the system keychain.",
+      "noTranscription": "The account only covers summaries: transcribing with OpenAI still needs an API key."
     },
     "templates": {
       "builtin": "Built-in",
@@ -213,8 +229,8 @@
     "zh": "Chinese"
   },
   "errors": {
-    "NO_API_KEY_ANTHROPIC": "Missing Anthropic API key. Add it in Settings → API keys.",
-    "NO_API_KEY_OPENAI": "Missing OpenAI API key. Add it in Settings → API keys.",
+    "NO_API_KEY_ANTHROPIC": "Missing Anthropic API key. Add it in Settings → Accounts & API keys.",
+    "NO_API_KEY_OPENAI": "Missing OpenAI API key. Add it, or connect your ChatGPT account, in Settings → Accounts & API keys.",
     "NO_LOCAL_MODEL": "The selected Whisper model isn't downloaded. Download it in Settings → Transcription.",
     "WHISPER_BINARY_MISSING": "The whisper.cpp executable wasn't found. Run “npm run whisper:fetch”.",
     "FFMPEG_FAILED": "Couldn't read audio from the file",
@@ -231,6 +247,10 @@
     "CANCELLED": "Cancelled.",
     "DOWNLOAD_FAILED": "Download failed",
     "UPDATE_FAILED": "Couldn't check for or download the update",
+    "ACCOUNT_SIGNED_OUT": "The account session expired or was signed out. Reconnect it in Settings → Accounts & API keys.",
+    "ACCOUNT_NOT_ELIGIBLE": "This account cannot be used from NoteTaker: it needs ChatGPT Plus or Pro, or permission was denied.",
+    "USAGE_LIMIT": "Your plan’s usage limit was reached. Wait for it to reset or review usage in your account settings.",
+    "SIGN_IN_FAILED": "Could not sign in",
     "UNKNOWN": "Something went wrong"
   }
 }

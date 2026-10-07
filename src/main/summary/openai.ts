@@ -1,14 +1,17 @@
 import OpenAI from 'openai'
 import { AppErrorException } from '@shared/errors'
 import type { SummaryPrompt } from './templates'
-import { mapOpenAIError } from './errors'
+import { mapOpenAIError, mapSubscriptionError } from './errors'
 
 export const DEFAULT_OPENAI_SUMMARY_MODEL = 'gpt-5.5'
 export const DEFAULT_OPENAI_TRANSCRIPTION_MODEL = 'whisper-1'
 
 export interface OpenAISummaryOptions {
+  /** API key, o el access token de la cuenta de ChatGPT. */
   apiKey: string
   model: string
+  /** Uso del plan de ChatGPT: exige `store: false` (y streaming, que ya se usa). */
+  account?: boolean
   prompt: SummaryPrompt
   signal?: AbortSignal
   onDelta: (text: string) => void
@@ -21,13 +24,28 @@ export async function summarizeWithOpenAI(opts: OpenAISummaryOptions): Promise<s
       {
         model: opts.model,
         instructions: opts.prompt.system,
-        input: opts.prompt.user
+        // En forma de lista: el uso del plan de ChatGPT rechaza `input` como texto suelto
+        // ("Input must be a list"); la API normal acepta las dos formas.
+        input: [{ role: 'user', content: opts.prompt.user }],
+        ...(opts.account ? { store: false } : {})
       },
       { signal: opts.signal }
     )
-    stream.on('response.output_text.delta', (event) => opts.onDelta(event.delta))
+    let streamed = ''
+    stream.on('response.output_text.delta', (event) => {
+      streamed += event.delta
+      opts.onDelta(event.delta)
+    })
     const response = await stream.finalResponse()
-    const text = response.output_text.trim()
+    if (response.status === 'failed') {
+      throw (
+        mapSubscriptionError(response.error?.code, response.error?.message) ??
+        new AppErrorException('API_ERROR', response.error?.message ?? 'failed')
+      )
+    }
+    // Con `store: false` (cuenta de ChatGPT) el `response.completed` puede llegar sin `output`:
+    // el texto es el que llegó por streaming.
+    const text = (response.output_text || streamed).trim()
     if (!text)
       throw new AppErrorException('API_ERROR', response.incomplete_details?.reason ?? 'empty')
     return text

@@ -5,6 +5,9 @@ export const IPC = {
   settingsSetApiKey: 'settings:set-api-key',
   settingsChanged: 'settings:changed',
   providerModels: 'provider:models',
+  chatgptSignIn: 'chatgpt:sign-in',
+  chatgptCancelSignIn: 'chatgpt:cancel-sign-in',
+  chatgptSignOut: 'chatgpt:sign-out',
 
   whisperModelsList: 'whisper-models:list',
   whisperModelsDownload: 'whisper-models:download',

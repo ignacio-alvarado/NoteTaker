@@ -34,8 +34,8 @@
     "pipeline": "Transcripción: <1>{{engine}}</1> · Resumen: <3>{{provider}}</3>",
     "warnNoModel": "No hay ningún modelo de Whisper descargado para la transcripción local.",
     "warnNoOpenAIKeyTranscription": "La transcripción con OpenAI necesita una API key de OpenAI.",
-    "warnNoSummaryKey": "Falta una API key (Anthropic u OpenAI) para generar resúmenes.",
-    "warnProviderKey": "El proveedor de resúmenes seleccionado no tiene API key configurada.",
+    "warnNoSummaryKey": "Añade una API key (Anthropic u OpenAI) o conecta tu cuenta de ChatGPT para generar resúmenes.",
+    "warnProviderKey": "El proveedor de resúmenes seleccionado no tiene cuenta ni API key configurada.",
     "fix": "Configurar"
   },
   "recorder": {
@@ -110,7 +110,7 @@
       "general": "General",
       "transcription": "Transcripción",
       "summary": "Resumen",
-      "keys": "API keys",
+      "keys": "Cuentas y API keys",
       "templates": "Plantillas"
     },
     "general": {
@@ -141,9 +141,10 @@
     },
     "summary": {
       "provider": "Proveedor",
-      "noKey": "Sin API key",
+      "noKey": "Sin configurar",
       "model": "Modelo",
-      "modelHint": "Escribe el id del modelo o elige uno de la lista.",
+      "modelHint": "Elige un modelo de la lista. Pulsa el botón para cargar todos los disponibles.",
+      "noModels": "Pulsa el botón para cargar los modelos",
       "effort": "Esfuerzo de razonamiento",
       "effortHint": "Más esfuerzo da resúmenes más cuidadosos, pero tarda más y cuesta más.",
       "effortLevels": {
@@ -156,7 +157,9 @@
       "outputLanguage": "Idioma del resumen",
       "outputAuto": "El mismo que la transcripción",
       "defaultTemplate": "Plantilla predeterminada",
-      "autoSummarize": "Resumir automáticamente al terminar de transcribir"
+      "autoSummarize": "Resumir automáticamente al terminar de transcribir",
+      "viaAccount": "Con tu cuenta",
+      "chatgptModelHint": "Modelos incluidos en tu plan de ChatGPT. Pulsa el botón para cargarlos."
     },
     "keys": {
       "anthropic": "Anthropic (Claude)",
@@ -168,7 +171,20 @@
       "notSet": "Sin configurar",
       "hint": "Las claves se cifran con el llavero del sistema (Keychain / DPAPI) y solo las usa el proceso principal de la app.",
       "getKey": "Obtener una clave",
-      "encryptionUnavailable": "El cifrado del sistema no está disponible: no se pueden guardar claves."
+      "encryptionUnavailable": "El cifrado del sistema no está disponible: no se pueden guardar claves.",
+      "modeApiKey": "API key",
+      "modeApiKeyDesc": "Pago por uso en la consola del proveedor.",
+      "modeAccount": "Cuenta de ChatGPT",
+      "modeAccountDesc": "Usa tu plan Plus o Pro."
+    },
+    "accounts": {
+      "chatgptConnect": "Conectar con ChatGPT",
+      "chatgptWaiting": "Termina la conexión en el navegador…",
+      "chatgptConnected": "Conectado",
+      "chatgptDisconnect": "Desconectar",
+      "chatgptManage": "Gestionar uso",
+      "chatgptHint": "Necesitas ChatGPT Plus o Pro. El uso cuenta contra los límites de tu plan, y en los ajustes de ChatGPT puedes limitar cuánto usa NoteTaker. Los tokens se cifran con el llavero del sistema.",
+      "noTranscription": "La cuenta solo cubre los resúmenes: para transcribir con OpenAI sigue haciendo falta una API key."
     },
     "templates": {
       "builtin": "Incluidas",
@@ -213,8 +229,8 @@
     "zh": "Chino"
   },
   "errors": {
-    "NO_API_KEY_ANTHROPIC": "Falta la API key de Anthropic. Añádela en Ajustes → API keys.",
-    "NO_API_KEY_OPENAI": "Falta la API key de OpenAI. Añádela en Ajustes → API keys.",
+    "NO_API_KEY_ANTHROPIC": "Falta la API key de Anthropic. Añádela en Ajustes → Cuentas y API keys.",
+    "NO_API_KEY_OPENAI": "Falta la API key de OpenAI. Añádela, o conecta tu cuenta de ChatGPT, en Ajustes → Cuentas y API keys.",
     "NO_LOCAL_MODEL": "El modelo de Whisper elegido no está descargado. Descárgalo en Ajustes → Transcripción.",
     "WHISPER_BINARY_MISSING": "No se encontró el ejecutable de whisper.cpp. Ejecuta «npm run whisper:fetch».",
     "FFMPEG_FAILED": "No se pudo leer el audio del archivo",
@@ -231,6 +247,10 @@
     "CANCELLED": "Cancelado.",
     "DOWNLOAD_FAILED": "La descarga falló",
     "UPDATE_FAILED": "No se pudo comprobar o descargar la actualización",
+    "ACCOUNT_SIGNED_OUT": "La sesión de la cuenta caducó o se cerró. Vuelve a conectarla en Ajustes → Cuentas y API keys.",
+    "ACCOUNT_NOT_ELIGIBLE": "Esta cuenta no puede usarse desde NoteTaker: hace falta ChatGPT Plus o Pro, o se denegó el permiso.",
+    "USAGE_LIMIT": "Se alcanzó el límite de uso de tu plan. Espera a que se renueve o revisa el uso en los ajustes de tu cuenta.",
+    "SIGN_IN_FAILED": "No se pudo iniciar sesión",
     "UNKNOWN": "Ocurrió un error inesperado"
   }
 }

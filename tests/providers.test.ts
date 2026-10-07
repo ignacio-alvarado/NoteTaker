@@ -381,9 +381,213 @@ describe('summarizeWithOpenAI', () => {
     expect(JSON.parse(captured[0].body)).toMatchObject({
       model: 'gpt-5.5',
       instructions: prompt.system,
-      input: prompt.user,
+      input: [{ role: 'user', content: prompt.user }],
       stream: true
     })
+    expect(JSON.parse(captured[0].body).store).toBeUndefined()
+  })
+
+  it('sends store:false and the access token with a ChatGPT account', async () => {
+    captured = []
+    respond = (_req, res) => {
+      res.writeHead(200, { 'content-type': 'text/event-stream' })
+      res.end(
+        sse([
+          {
+            event: 'response.created',
+            data: {
+              type: 'response.created',
+              sequence_number: 0,
+              response: { id: 'resp_2', object: 'response', status: 'in_progress', output: [] }
+            }
+          },
+          {
+            event: 'response.completed',
+            data: {
+              type: 'response.completed',
+              sequence_number: 1,
+              response: {
+                id: 'resp_2',
+                object: 'response',
+                created_at: 1,
+                model: 'gpt-plan',
+                status: 'completed',
+                output: [
+                  {
+                    id: 'msg_2',
+                    type: 'message',
+                    role: 'assistant',
+                    status: 'completed',
+                    content: [{ type: 'output_text', text: 'ok', annotations: [] }]
+                  }
+                ],
+                incomplete_details: null,
+                error: null,
+                tools: []
+              }
+            }
+          }
+        ])
+      )
+    }
+    const text = await summarizeWithOpenAI({
+      apiKey: 'access-token',
+      account: true,
+      model: 'gpt-plan',
+      prompt,
+      onDelta: () => undefined
+    })
+    expect(text).toBe('ok')
+    expect(captured[0].headers.authorization).toBe('Bearer access-token')
+    expect(JSON.parse(captured[0].body)).toMatchObject({
+      store: false,
+      stream: true,
+      input: [{ role: 'user', content: prompt.user }]
+    })
+  })
+
+  it('keeps the streamed text when the plan response completes without output', async () => {
+    respond = (_req, res) => {
+      const base = { id: 'resp_4', object: 'response', created_at: 1, model: 'gpt-plan', tools: [] }
+      res.writeHead(200, { 'content-type': 'text/event-stream' })
+      res.end(
+        sse([
+          {
+            event: 'response.created',
+            data: {
+              type: 'response.created',
+              sequence_number: 0,
+              response: { ...base, status: 'in_progress', output: [] }
+            }
+          },
+          {
+            event: 'response.output_item.added',
+            data: {
+              type: 'response.output_item.added',
+              sequence_number: 1,
+              output_index: 0,
+              item: {
+                id: 'msg_4',
+                type: 'message',
+                role: 'assistant',
+                status: 'in_progress',
+                content: []
+              }
+            }
+          },
+          {
+            event: 'response.content_part.added',
+            data: {
+              type: 'response.content_part.added',
+              sequence_number: 2,
+              item_id: 'msg_4',
+              output_index: 0,
+              content_index: 0,
+              part: { type: 'output_text', text: '', annotations: [] }
+            }
+          },
+          {
+            event: 'response.output_text.delta',
+            data: {
+              type: 'response.output_text.delta',
+              sequence_number: 3,
+              item_id: 'msg_4',
+              output_index: 0,
+              content_index: 0,
+              delta: '## Acta',
+              logprobs: []
+            }
+          },
+          {
+            // Así llega con `store: false`: completado, pero sin `output`.
+            event: 'response.completed',
+            data: {
+              type: 'response.completed',
+              sequence_number: 4,
+              response: { ...base, status: 'completed', output: [], error: null }
+            }
+          }
+        ])
+      )
+    }
+    const text = await summarizeWithOpenAI({
+      apiKey: 'access-token',
+      account: true,
+      model: 'gpt-plan',
+      prompt,
+      onDelta: () => undefined
+    })
+    expect(text).toBe('## Acta')
+  })
+
+  it('maps plan usage limits to USAGE_LIMIT', async () => {
+    respond = (_req, res) => {
+      // Sin reintentos del SDK: el límite del plan no se arregla reintentando.
+      res.writeHead(429, { 'content-type': 'application/json', 'x-should-retry': 'false' })
+      res.end(
+        JSON.stringify({
+          error: {
+            type: 'rate_limit_error',
+            code: 'subscription_sharing_usage_limit_exceeded',
+            message: 'Weekly limit reached'
+          }
+        })
+      )
+    }
+    const err = await summarizeWithOpenAI({
+      apiKey: 'access-token',
+      account: true,
+      model: 'gpt-plan',
+      prompt,
+      onDelta: () => undefined
+    }).catch((e) => e)
+    expect(err).toBeInstanceOf(AppErrorException)
+    expect(err.code).toBe('USAGE_LIMIT')
+  })
+
+  it('maps a response.failed event with a plan error code', async () => {
+    respond = (_req, res) => {
+      res.writeHead(200, { 'content-type': 'text/event-stream' })
+      res.end(
+        sse([
+          {
+            event: 'response.created',
+            data: {
+              type: 'response.created',
+              sequence_number: 0,
+              response: { id: 'resp_3', object: 'response', status: 'in_progress', output: [] }
+            }
+          },
+          {
+            event: 'response.failed',
+            data: {
+              type: 'response.failed',
+              sequence_number: 1,
+              response: {
+                id: 'resp_3',
+                object: 'response',
+                created_at: 1,
+                model: 'gpt-plan',
+                status: 'failed',
+                output: [],
+                incomplete_details: null,
+                error: { code: 'subscription_sharing_invalid_user', message: 'revoked' },
+                tools: []
+              }
+            }
+          }
+        ])
+      )
+    }
+    const err = await summarizeWithOpenAI({
+      apiKey: 'access-token',
+      account: true,
+      model: 'gpt-plan',
+      prompt,
+      onDelta: () => undefined
+    }).catch((e) => e)
+    expect(err).toBeInstanceOf(AppErrorException)
+    expect(err.code).toBe('ACCOUNT_SIGNED_OUT')
   })
 })
 

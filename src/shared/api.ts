@@ -30,6 +30,10 @@ export interface PreloadApi {
     provider: SummaryProvider,
     purpose: 'summary' | 'transcription'
   ): Promise<Result<string[]>>
+  /** Conecta la cuenta de ChatGPT (OAuth en el navegador). */
+  signInChatGPT(): Promise<Result<SettingsView>>
+  cancelChatGPTSignIn(): Promise<Result<void>>
+  signOutChatGPT(): Promise<Result<SettingsView>>
 
   listWhisperModels(): Promise<Result<WhisperModelInfo[]>>
   downloadWhisperModel(id: string): Promise<Result<void>>

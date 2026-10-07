@@ -16,6 +16,7 @@ import type {
   SettingsPatch,
   SummaryProvider
 } from '@shared/types'
+import type { ChatGPTAccount } from './accounts/chatgpt'
 import { exportEntry } from './export'
 import type { JobManager } from './jobs'
 import type { Library } from './library'
@@ -34,6 +35,7 @@ const MEDIA_EXTENSIONS = [
 export interface IpcDeps {
   library: Library
   settings: SettingsStore
+  chatgpt: ChatGPTAccount
   jobs: JobManager
   updater: Updater
   modelsDir: () => string
@@ -59,6 +61,7 @@ function handle<A extends unknown[], T>(
 export function registerIpc({
   library,
   settings,
+  chatgpt,
   jobs,
   updater,
   modelsDir,
@@ -74,11 +77,35 @@ export function registerIpc({
   )
   handle(
     IPC.providerModels,
-    (_e, provider: SummaryProvider, purpose: 'summary' | 'transcription') =>
-      provider === 'anthropic'
-        ? listAnthropicModels(settings.requireApiKey('anthropic'))
-        : listOpenAIModels(settings.requireApiKey('openai'), purpose)
+    async (_e, provider: SummaryProvider, purpose: 'summary' | 'transcription') => {
+      if (provider === 'anthropic') return listAnthropicModels(settings.requireApiKey('anthropic'))
+      // La cuenta de ChatGPT solo cubre resúmenes; la transcripción siempre va con API key.
+      if (purpose === 'summary' && settings.get().summary.openaiAuth === 'account')
+        return (await chatgpt.listModels()).map((m) => m.slug)
+      return listOpenAIModels(settings.requireApiKey('openai'), purpose)
+    }
   )
+
+  // Cuenta de ChatGPT (Plus/Pro)
+  handle(IPC.chatgptSignIn, async () => {
+    await chatgpt.signIn()
+    // Elegir un modelo del plan si el guardado no está disponible.
+    try {
+      const slugs = (await chatgpt.listModels()).map((m) => m.slug)
+      const current = settings.get().summary.chatgptModel
+      if (slugs.length && !slugs.includes(current))
+        await settings.update({ summary: { chatgptModel: slugs[0] } })
+    } catch {
+      // Se podrá elegir luego en Ajustes → Resumen.
+    }
+    await settings.preferProvider('openai')
+    return settings.notifyChanged()
+  })
+  handle(IPC.chatgptCancelSignIn, () => chatgpt.cancelSignIn())
+  handle(IPC.chatgptSignOut, async () => {
+    await chatgpt.signOut()
+    return settings.notifyChanged()
+  })
 
   // Modelos de whisper
   handle(IPC.whisperModelsList, () => listModels(modelsDir()))
