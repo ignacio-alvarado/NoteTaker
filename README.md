@@ -108,7 +108,7 @@ Deleting an entry moves it to the system trash.
    - **The installers first** (`.dmg`, `.zip`, `.exe`, `.blockmap`), cacheable forever because the version is in the file name.
    - **The manifest last** (`latest-mac.yml` or `latest.yml`), with no caching. This way no client sees a new version before its installers are uploaded.
 3. The app reads that manifest at `UPDATE_BASE_URL` 10 s after launch and then every 4 hours. It can be turned off in Settings → General → "Check for updates automatically", which is also where you can check manually.
-   - **Windows:** downloads the new version in the background and installs it when you click "Restart and update" or quit the app.
+   - **Windows:** downloads the new version in the background and installs it silently, without the installer wizard: when you click "Restart and update" (the app reopens on its own) or when you quit the app. If NoteTaker was installed for all users, Windows still asks for administrator permission (UAC). Versions 0.2.0 and earlier show the wizard one last time on their next update, because the installed version is what launches the installer.
    - **Unsigned macOS:** shows a notice and opens the `.dmg` download in the browser. Automatic installation requires the app to be signed with an Apple Developer ID (see below).
 4. If `build/release-notes.md` exists, its content is published in the manifest and the app shows it as "What's new".
 5. Once both builds succeed, the workflow creates the GitHub release for the tag with the `.dmg` and the `.exe` attached and auto-generated notes. If the release already exists (e.g. created by hand), it only uploads or replaces the installers.
