@@ -108,7 +108,8 @@ export class Updater {
   }
 
   install(): void {
-    if (this.state.status === 'downloaded') autoUpdater.quitAndInstall()
+    // Silenciosa (sin el asistente de NSIS) y volviendo a abrir la app al terminar.
+    if (this.state.status === 'downloaded') autoUpdater.quitAndInstall(true, true)
   }
 
   /** macOS sin firma: abrir la descarga del instalador nuevo en el navegador. */
